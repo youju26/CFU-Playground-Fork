@@ -55,9 +55,9 @@ fi
 if ! which ninja >/dev/null; then
     missing+=(ninja-build)
 fi
-if ! (apt list -i | grep libusb-1.0-0-dev) ; then
-    missing+=(libusb-1.0-0-dev libftdi1-dev)
-fi
+#if ! (apt list -i | grep libusb-1.0-0-dev) ; then
+#    missing+=(libusb-1.0-0-dev libftdi1-dev)
+#fi
 
 echo Missing:
 echo $missing
@@ -150,7 +150,7 @@ fi
 # Yosys -- get local copy if there isn't a sufficiently recent system verion 
 # DISABLED for now -- caused too many problems
 # Use Conda if you need to get Yosys.
-if false; then
+if true; then
     if ! which yosys >/dev/null || ! yosys -V | grep "Yosys 0.1" >/dev/null; then
         if [ ! -e "${CFU_ROOT}/third_party/usr/local/bin/yosys" ]; then
             echo "Getting Yosys."
