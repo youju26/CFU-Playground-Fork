@@ -16,7 +16,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v3
         with:
-          python-version: '3.7'
+          python-version: '3.12'
       - run: bash scripts/setup -ci
       - run: which pip3 && which python3 && which pip
       - run: make install-sf

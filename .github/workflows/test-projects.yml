@@ -44,7 +44,7 @@ jobs:
     - name: Setup Python
       uses: actions/setup-python@v3
       with:
-        python-version: '3.7'
+        python-version: '3.12'
 
     - name: Setup matrix combinations
       id: setup-matrix-combinations
@@ -81,7 +81,7 @@ jobs:
       uses: conda-incubator/setup-miniconda@v2
       with:
         auto-update-conda: true
-        python-version: '3.7'
+        python-version: '3.12'
         environment-file: .github/misc/test-environment.yml
         activate-environment: "test"
         
@@ -112,7 +112,7 @@ jobs:
     - name: Setup Python
       uses: actions/setup-python@v3
       with:
-        python-version: '3.7'
+        python-version: '3.12'
 
     - name: Prepare Renode version
       run: |
@@ -137,7 +137,7 @@ jobs:
       uses: conda-incubator/setup-miniconda@v2
       with:
         auto-update-conda: true
-        python-version: '3.7'
+        python-version: '3.12'
         environment-file: .github/misc/test-environment.yml
         activate-environment: "test"
 
