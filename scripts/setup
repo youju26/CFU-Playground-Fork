@@ -55,6 +55,8 @@ fi
 if ! which ninja >/dev/null; then
     missing+=(ninja-build)
 fi
+# Modified by Julius Friesen, 2025
+# For ArchLinux compatibility this was commented out:
 #if ! (apt list -i | grep libusb-1.0-0-dev) ; then
 #    missing+=(libusb-1.0-0-dev libftdi1-dev)
 #fi

@@ -389,6 +389,10 @@ prog bitstream:
 endif
 
 .PHONY: pytest
+# Modified by Julius Friesen, 2025
+# Change: 
+# unittest discover couldn't find any tests, so I added
+# both directories containing tests
 pytest:
 	for dir in ../../third_party/python ../../python/amaranth_cfu; do \
 		$(PYRUN) -m unittest discover -s "$$dir" -p 'test_*.py'; \
