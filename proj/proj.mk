@@ -390,4 +390,6 @@ endif
 
 .PHONY: pytest
 pytest:
-	$(PYRUN) -m unittest discover -p ${PYTEST_PATTERN}
+	for dir in ../../third_party/python ../../python/amaranth_cfu; do \
+		$(PYRUN) -m unittest discover -s "$$dir" -p 'test_*.py'; \
+	done
