@@ -61,7 +61,7 @@ void do_multiplication(void) {
 
   int x = 6;
   int y = 7;
-  int z = cfu_op0(1, x, y);
+  int z = cfu_op1(0, x, y);
 
   printf("%d * %d = %d\n\n", x, y, z);
 }
@@ -71,7 +71,7 @@ struct Menu MENU = {
     "project",
     {
         MENU_ITEM('0', "exercise cfu op0", do_exercise_cfu_op0),
-        MENU_ITEM('1', "excercise multiplication task", do_multiplication),
+        MENU_ITEM('1', "exercise multiplication task", do_multiplication),
         MENU_ITEM('h', "say Hello", do_hello_world),
         MENU_END,
     },
