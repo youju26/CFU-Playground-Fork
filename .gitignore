@@ -102,3 +102,7 @@ third_party/yosys
 # Environment
 env
 venv
+
+# Vivado
+*.jou
+*.log
