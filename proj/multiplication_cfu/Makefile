@@ -14,7 +14,7 @@
 # limitations under the License.
 
 # This variable lists symbols to define to the C preprocessor
-export DEFINES :=
+export DEFINES := 
 
 # Uncomment this line to use software defined CFU functions in software_cfu.cc
 #DEFINES += CFU_SOFTWARE_DEFINED
@@ -41,5 +41,17 @@ DEFINES += INCLUDE_MODEL_MLCOMMONS_TINY_V01_VWW
 
 # Uncomment this line to include the ASCII animated donut demo.
 DEFINES += DONUT_DEMO
+
+# Show CSR Counters
+export EXTRA_LITEX_ARGS="--cpu-variant=perf+cfu"
+
+# Target Digilent Arty
+export TARGET=digilent_arty
+
+# Use Vivado Toolchain
+export USE_VIVADO=1
+
+# Number of Threads for Building
+export BUILD_JOBS=16
 
 include ../proj.mk
