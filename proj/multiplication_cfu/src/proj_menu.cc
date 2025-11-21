@@ -61,7 +61,7 @@ void do_multiplication(void) {
 
   int x = 6;
   int y = 7;
-  int z = cfu_op2(0, x, y);
+  int z = cfu_op0(0, x, y);
 
   printf("%d * %d = %d\n\n", x, y, z);
 }

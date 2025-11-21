@@ -22,9 +22,6 @@
 [submodule "soc/deps/pythondata_software_compiler_rt"]
 	path = third_party/python/pythondata_software_compiler_rt
 	url = https://github.com/litex-hub/pythondata-software-compiler_rt.git
-[submodule "soc/deps/pythondata_cpu_vexriscv"]
-	path = third_party/python/pythondata_cpu_vexriscv
-	url = https://github.com/litex-hub/pythondata-cpu-vexriscv.git
 [submodule "third_party/python/pyvcd"]
 	path = third_party/python/pyvcd
 	url = https://github.com/SanDisk-Open-Source/pyvcd.git
