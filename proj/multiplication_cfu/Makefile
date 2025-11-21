@@ -43,7 +43,7 @@ DEFINES += INCLUDE_MODEL_MLCOMMONS_TINY_V01_VWW
 DEFINES += DONUT_DEMO
 
 # Show CSR Counters
-export EXTRA_LITEX_ARGS="--cpu-variant=perf+cfu"
+export EXTRA_LITEX_ARGS="--cpu-variant=perf+cfu" "--sys-clk-freq=50e6"
 
 # Target Digilent Arty
 export TARGET=digilent_arty

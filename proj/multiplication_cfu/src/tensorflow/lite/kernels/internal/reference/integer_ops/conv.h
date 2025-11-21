@@ -77,8 +77,8 @@ inline void ConvPerChannel(
         const int in_x_origin = (out_x * stride_width) - pad_width;
         for (int out_channel = 0; out_channel < output_depth; ++out_channel) {
           auto group = out_channel / filters_per_group;
-          int32_t acc = 0;
-          //int32_t acc = cfu_op0(/* funct7= */ 1, 0, 0); // resets acc
+          //int32_t acc = 0;
+          int32_t acc = cfu_op3(/* funct7= */ 1, 0, 0); // resets acc
           for (int filter_y = 0; filter_y < filter_height; ++filter_y) {
             const int in_y = in_y_origin + dilation_height_factor * filter_y;
             for (int filter_x = 0; filter_x < filter_width; ++filter_x) {
@@ -121,7 +121,7 @@ inline void ConvPerChannel(
                 // acc += filter_val * (input_val + input_offset);
 
                 // ----------------- With CFU --------------------
-                acc += cfu_op0(0, filter_val, (input_val + input_offset));
+                acc = cfu_op3(0, filter_val, (input_val + input_offset));
               }
               perf_disable_counter(0);
             }

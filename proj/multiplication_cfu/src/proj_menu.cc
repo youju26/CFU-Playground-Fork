@@ -61,9 +61,13 @@ void do_multiplication(void) {
 
   int x = 6;
   int y = 7;
-  int z = cfu_op0(0, x, y);
+  int z = cfu_op3(0, x, y);
 
   printf("%d * %d = %d\n\n", x, y, z);
+}
+
+void reset_acc(void) {
+  cfu_op3(1, 0, 0);
 }
 
 struct Menu MENU = {
@@ -73,6 +77,7 @@ struct Menu MENU = {
         MENU_ITEM('0', "exercise cfu op0", do_exercise_cfu_op0),
         MENU_ITEM('1', "exercise multiplication task", do_multiplication),
         MENU_ITEM('h', "say Hello", do_hello_world),
+        MENU_ITEM('r', "reset acc", reset_acc),
         MENU_END,
     },
 };
