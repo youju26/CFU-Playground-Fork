@@ -21,6 +21,12 @@
 #include "cfu.h"
 #include "menu.h"
 
+// Forward declarations
+void reset_acc(void);
+#ifdef ENABLE_CFU_TESTS
+extern void run_all_cfu_tests(void);
+#endif
+
 namespace {
 
 // Template Fn
@@ -55,19 +61,20 @@ void do_exercise_cfu_op0(void) {
          pass_count, fail_count);
 }
 
-// My own Multiplication
+// CFU Multiplication Demo / Testing
 void do_multiplication(void) {
-  puts("This is my own task! \n");
-
+  puts("This is my own multiplication CFU!\n");
   int x = 6;
   int y = 7;
   int z = cfu_op3(0, x, y);
 
   printf("%d * %d = %d\n\n", x, y, z);
-}
-
-void reset_acc(void) {
-  cfu_op3(1, 0, 0);
+  reset_acc();
+#ifdef ENABLE_CFU_TESTS
+  run_all_cfu_tests();
+#else
+  puts("CFU tests are disabled. Enable ENABLE_CFU_TESTS in Makefile to run tests.\n");
+#endif
 }
 
 struct Menu MENU = {
@@ -81,6 +88,11 @@ struct Menu MENU = {
         MENU_END,
     },
 };
-};  // anonymous namespace
+}  // anonymous namespace
+
+// Reset the CFU accumulator (funct7=1) - must be external for cfu_tests.cc to use
+void reset_acc(void) {
+  cfu_op3(1, 0, 0);
+}
 
 extern "C" void do_proj_menu() { menu_run(&MENU); }

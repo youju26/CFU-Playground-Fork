@@ -48,6 +48,8 @@ inline void ConvPerChannel(
     const int8_t* filter_data, const RuntimeShape& bias_shape,
     const int32_t* bias_data, const RuntimeShape& output_shape,
     int8_t* output_data) {
+  // Debugging output
+  int counter_i = 0;
   // Get parameters.
   const int32_t input_offset = params.input_offset;  // r = s(q - Z)
   const int stride_width = params.stride_width;
@@ -85,6 +87,7 @@ inline void ConvPerChannel(
   const int filters_per_group = output_depth / groups;
   const int output_height = output_shape.Dims(1);
   const int output_width = output_shape.Dims(2);
+  // TODO: Copy offset into CFU, depending on DNN model
   for (int batch = 0; batch < batches; ++batch) {
     for (int out_y = 0; out_y < output_height; ++out_y) {
       const int in_y_origin = (out_y * stride_height) - pad_height;
@@ -117,6 +120,13 @@ inline void ConvPerChannel(
               for (int in_channel = 0; in_channel < filter_input_depth; ++in_channel) {
                 int32_t input_val = input_data[Offset(input_shape, batch, in_y, in_x, in_channel + group * filter_input_depth)];
                 int32_t filter_val = filter_data[Offset(filter_shape, out_channel, filter_y, filter_x, in_channel)];
+
+                // Debugging output
+                if (counter_i < 5) {
+                  counter_i++;
+                  printf("input_val: %ld, input_val_8bit: %d, filter_val: %ld, filter_val_8bit: %d\n", input_val, (int8_t)input_val, filter_val, (int8_t)filter_val);
+                }
+                
                 // Accumulate with 32 bits accumulator.
                 // In the nudging process during model quantization, we force
                 // real value of 0.0 be represented by a quantized value. This
@@ -136,15 +146,18 @@ inline void ConvPerChannel(
 
 #if CFU_USE_MAC
                 // Use CFU multiply-accumulate; CFU returns the updated acc.
-                acc = CFU_MAC_ACC(filter_val, (input_val + input_offset));
+                acc = CFU_MAC_ACC(filter_val, (int32_t)(input_val + input_offset));
 #else
                 acc += filter_val * (input_val + input_offset);
 #endif
+
+                // TODO: handle acc inside CFU, 
               }
               perf_disable_counter(0);
             }
           }
 
+          // TODO: Retrieve acc from CFU afterwards, if CFU used.
           if (bias_data) {
             acc += bias_data[out_channel];
           }
