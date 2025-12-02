@@ -19,6 +19,21 @@ limitations under the License.
 #include "perf.h"
 #include "cfu.h"
 
+// CFU helper macros: use CFU when enabled.
+// Control via `USE_CFU` define in Makefile. When enabled, the build must
+// provide `cfu_op3(funct7, rs1, rs2)` via `cfu.h` with the expected semantics:
+//   - cfu_op3(1, 0, 0)     : Reset internal CFU accumulator
+//   - cfu_op3(0, rs1, rs2) : Multiply-accumulate: acc += rs1 * rs2, return updated acc
+#if defined(USE_CFU)
+#define CFU_USE_MAC 1
+#define CFU_MAC_RESET() cfu_op3(/*funct7=*/1, 0, 0)
+#define CFU_MAC_ACC(rs1, rs2) cfu_op3(/*funct7=*/0, (rs1), (rs2))
+#else
+#define CFU_USE_MAC 0
+#define CFU_MAC_RESET() do { } while(0)
+#define CFU_MAC_ACC(rs1, rs2) (0)
+#endif
+
 #include "tensorflow/lite/kernels/internal/common.h"
 #include "tensorflow/lite/kernels/internal/portable_tensor_utils.h"
 
@@ -77,8 +92,13 @@ inline void ConvPerChannel(
         const int in_x_origin = (out_x * stride_width) - pad_width;
         for (int out_channel = 0; out_channel < output_depth; ++out_channel) {
           auto group = out_channel / filters_per_group;
-          //int32_t acc = 0;
-          int32_t acc = cfu_op3(/* funct7= */ 1, 0, 0); // resets acc
+          // Use CFU-accelerated multiply-accumulate when enabled at build time.
+#if CFU_USE_MAC
+          CFU_MAC_RESET();  // reset CFU internal accumulator (CFU maintains acc)
+          int32_t acc = 0;  // keep local copy in sync with CFU return values
+#else
+          int32_t acc = 0;
+#endif
           for (int filter_y = 0; filter_y < filter_height; ++filter_y) {
             const int in_y = in_y_origin + dilation_height_factor * filter_y;
             for (int filter_x = 0; filter_x < filter_width; ++filter_x) {
@@ -92,14 +112,11 @@ inline void ConvPerChannel(
               if (!is_point_inside_image) {
                 continue;
               }
+              // Enable perf counter around the inner per-pixel work.
               perf_enable_counter(0);
-              for (int in_channel = 0; in_channel < filter_input_depth;
-                   ++in_channel) {
-                int32_t input_val =
-                    input_data[Offset(input_shape, batch, in_y, in_x,
-                                      in_channel + group * filter_input_depth)];
-                int32_t filter_val = filter_data[Offset(
-                    filter_shape, out_channel, filter_y, filter_x, in_channel)];
+              for (int in_channel = 0; in_channel < filter_input_depth; ++in_channel) {
+                int32_t input_val = input_data[Offset(input_shape, batch, in_y, in_x, in_channel + group * filter_input_depth)];
+                int32_t filter_val = filter_data[Offset(filter_shape, out_channel, filter_y, filter_x, in_channel)];
                 // Accumulate with 32 bits accumulator.
                 // In the nudging process during model quantization, we force
                 // real value of 0.0 be represented by a quantized value. This
@@ -117,11 +134,12 @@ inline void ConvPerChannel(
                 // TODO(b/174275578): Add a check to make sure the
                 // accumulator depth is smaller than 2^16.
 
-                // ----------------- Without CFU -----------------
-                // acc += filter_val * (input_val + input_offset);
-
-                // ----------------- With CFU --------------------
-                acc = cfu_op3(0, filter_val, (input_val + input_offset));
+#if CFU_USE_MAC
+                // Use CFU multiply-accumulate; CFU returns the updated acc.
+                acc = CFU_MAC_ACC(filter_val, (input_val + input_offset));
+#else
+                acc += filter_val * (input_val + input_offset);
+#endif
               }
               perf_disable_counter(0);
             }

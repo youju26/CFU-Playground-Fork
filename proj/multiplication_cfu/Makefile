@@ -19,6 +19,9 @@ export DEFINES :=
 # Uncomment this line to use software defined CFU functions in software_cfu.cc
 #DEFINES += CFU_SOFTWARE_DEFINED
 
+# Uncomment this line to enable CFU acceleration
+#DEFINES += USE_CFU
+
 # Uncomment this line to skip debug code (large effect on performance)
 DEFINES += NDEBUG
 
@@ -29,7 +32,7 @@ DEFINES += NDEBUG
 DEFINES += INCLUDE_MODEL_PDTI8
 #DEFINES += INCLUDE_MODEL_MICRO_SPEECH
 #DEFINES += INCLUDE_MODEL_MAGIC_WAND
-#DEFINES += INCLUDE_MODEL_MNV2
+DEFINES += INCLUDE_MODEL_MNV2
 #DEFINES += INCLUDE_MODEL_HPS
 DEFINES += INCLUDE_MODEL_MLCOMMONS_TINY_V01_ANOMD
 DEFINES += INCLUDE_MODEL_MLCOMMONS_TINY_V01_IMGC

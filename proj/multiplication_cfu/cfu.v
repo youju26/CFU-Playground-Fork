@@ -12,9 +12,6 @@ module Cfu (
 );
   assign cmd_ready = ~rsp_valid;
 
-  reg [31:0] mul, acc;
-  reg mul_valid, acc_valid;
-
   always @(posedge clk) begin
 
     if (reset) begin
