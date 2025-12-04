@@ -64,11 +64,20 @@ void do_exercise_cfu_op0(void) {
 // CFU Multiplication Demo / Testing
 void do_multiplication(void) {
   puts("This is my own multiplication CFU!\n");
-  int x = 6;
-  int y = 7;
-  int z = cfu_op3(0, x, y);
+  int8_t x = 6;
+  int8_t y = 7;
+  int32_t offset = 0;
+  cfu_op3(2, offset, 0);  // Copy offset
+  int32_t z = cfu_op3(0, x, y); // Multiply-Accumulate
+  printf("%d * (%d + %ld) = %ld\n\n", x, y, offset, z);
+  z = cfu_op3(0, x, y); // Multiply-Accumulate
+  printf("Acc + %d * (%d + %ld) = %ld\n\n", x, y, offset, z);
+  reset_acc();
 
-  printf("%d * %d = %d\n\n", x, y, z);
+  offset = 5;
+  cfu_op3(2, offset, 0);  // Copy offset
+  z = cfu_op3(0, x, y); // Multiply-Accumulate
+  printf("%d * (%d + %ld) = %ld\n\n", x, y, offset, z);
   reset_acc();
 #ifdef ENABLE_CFU_TESTS
   run_all_cfu_tests();

@@ -28,10 +28,12 @@ limitations under the License.
 #define CFU_USE_MAC 1
 #define CFU_MAC_RESET() cfu_op3(/*funct7=*/1, 0, 0)
 #define CFU_MAC_ACC(rs1, rs2) cfu_op3(/*funct7=*/0, (rs1), (rs2))
+#define CFU_MAC_COPY_OFFSET(rs1) cfu_op3(/*funct7=*/2, (rs1), 0)
 #else
 #define CFU_USE_MAC 0
 #define CFU_MAC_RESET() do { } while(0)
 #define CFU_MAC_ACC(rs1, rs2) (0)
+#define CFU_MAC_COPY_OFFSET(rs1) do { } while(0) // TODO: try if (0) works
 #endif
 
 #include "tensorflow/lite/kernels/internal/common.h"
@@ -48,8 +50,6 @@ inline void ConvPerChannel(
     const int8_t* filter_data, const RuntimeShape& bias_shape,
     const int32_t* bias_data, const RuntimeShape& output_shape,
     int8_t* output_data) {
-  // Debugging output
-  int counter_i = 0;
   // Get parameters.
   const int32_t input_offset = params.input_offset;  // r = s(q - Z)
   const int stride_width = params.stride_width;
@@ -88,6 +88,9 @@ inline void ConvPerChannel(
   const int output_height = output_shape.Dims(1);
   const int output_width = output_shape.Dims(2);
   // TODO: Copy offset into CFU, depending on DNN model
+#if CFU_USE_MAC
+  CFU_MAC_COPY_OFFSET(input_offset);
+#endif
   for (int batch = 0; batch < batches; ++batch) {
     for (int out_y = 0; out_y < output_height; ++out_y) {
       const int in_y_origin = (out_y * stride_height) - pad_height;
@@ -118,14 +121,8 @@ inline void ConvPerChannel(
               // Enable perf counter around the inner per-pixel work.
               perf_enable_counter(0);
               for (int in_channel = 0; in_channel < filter_input_depth; ++in_channel) {
-                int32_t input_val = input_data[Offset(input_shape, batch, in_y, in_x, in_channel + group * filter_input_depth)];
-                int32_t filter_val = filter_data[Offset(filter_shape, out_channel, filter_y, filter_x, in_channel)];
-
-                // Debugging output
-                if (counter_i < 5) {
-                  counter_i++;
-                  printf("input_val: %ld, input_val_8bit: %d, filter_val: %ld, filter_val_8bit: %d\n", input_val, (int8_t)input_val, filter_val, (int8_t)filter_val);
-                }
+                int8_t input_val = input_data[Offset(input_shape, batch, in_y, in_x, in_channel + group * filter_input_depth)];
+                int8_t filter_val = filter_data[Offset(filter_shape, out_channel, filter_y, filter_x, in_channel)];
                 
                 // Accumulate with 32 bits accumulator.
                 // In the nudging process during model quantization, we force
@@ -146,7 +143,7 @@ inline void ConvPerChannel(
 
 #if CFU_USE_MAC
                 // Use CFU multiply-accumulate; CFU returns the updated acc.
-                acc = CFU_MAC_ACC(filter_val, (int32_t)(input_val + input_offset));
+                acc = CFU_MAC_ACC(filter_val, input_val);
 #else
                 acc += filter_val * (input_val + input_offset);
 #endif
