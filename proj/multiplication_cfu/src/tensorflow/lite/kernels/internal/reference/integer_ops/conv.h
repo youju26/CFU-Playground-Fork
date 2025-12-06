@@ -31,9 +31,9 @@ limitations under the License.
 #define CFU_MAC_COPY_OFFSET(rs1) cfu_op3(/*funct7=*/2, (rs1), 0)
 #else
 #define CFU_USE_MAC 0
-#define CFU_MAC_RESET() do { } while(0)
-#define CFU_MAC_ACC(rs1, rs2) (0)
-#define CFU_MAC_COPY_OFFSET(rs1) do { } while(0) // TODO: try if (0) works
+#define CFU_MAC_RESET() 0
+#define CFU_MAC_ACC(rs1, rs2) 0
+#define CFU_MAC_COPY_OFFSET(rs1) 0
 #endif
 
 #include "tensorflow/lite/kernels/internal/common.h"
@@ -87,7 +87,7 @@ inline void ConvPerChannel(
   const int filters_per_group = output_depth / groups;
   const int output_height = output_shape.Dims(1);
   const int output_width = output_shape.Dims(2);
-  // TODO: Copy offset into CFU, depending on DNN model
+  // Copy offset into CFU, depending on DNN model
 #if CFU_USE_MAC
   CFU_MAC_COPY_OFFSET(input_offset);
 #endif
