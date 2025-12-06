@@ -101,7 +101,6 @@ inline void ConvPerChannel(
           // Use CFU-accelerated multiply-accumulate when enabled at build time.
 #if CFU_USE_MAC
           CFU_MAC_RESET();  // reset CFU internal accumulator (CFU maintains acc)
-          int32_t acc = 0;  // keep local copy in sync with CFU return values
 #else
           int32_t acc = 0;
 #endif
@@ -143,18 +142,18 @@ inline void ConvPerChannel(
 
 #if CFU_USE_MAC
                 // Use CFU multiply-accumulate; CFU returns the updated acc.
-                acc = CFU_MAC_ACC(filter_val, input_val);
+                CFU_MAC_ACC(filter_val, input_val);
 #else
                 acc += filter_val * (input_val + input_offset);
 #endif
-
-                // TODO: handle acc inside CFU, 
               }
               perf_disable_counter(0);
             }
           }
 
-          // TODO: Retrieve acc from CFU afterwards, if CFU used.
+#if CFU_USE_MAC
+          int32_t acc = CFU_MAC_ACC(0, 0);  // retrieve final acc from CFU
+#endif
           if (bias_data) {
             acc += bias_data[out_channel];
           }
