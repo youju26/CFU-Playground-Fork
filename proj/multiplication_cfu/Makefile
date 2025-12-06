@@ -54,6 +54,9 @@ export EXTRA_LITEX_ARGS="--cpu-variant=perf+cfu" "--sys-clk-freq=50e6"
 # Target Digilent Arty
 export TARGET=digilent_arty
 
+# Ignore Timing Warnings
+#export IGNORE_TIMING=1
+
 # Use Vivado Toolchain
 export USE_VIVADO=1
 
