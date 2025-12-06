@@ -13,11 +13,14 @@ module Cfu (
 
   reg signed [31:0] input_offset;
 
-  // MAC computation
-  wire signed [31:0] prod_0;
+  // SIMD multiply step
+  wire signed [31:0] prod_0, prod_1, prod_2, prod_3;
   assign prod_0 = ($signed(cmd_payload_inputs_0[7 : 0]) * ($signed(cmd_payload_inputs_1[7 : 0]) + input_offset));
+  assign prod_1 = ($signed(cmd_payload_inputs_0[15: 8]) * ($signed(cmd_payload_inputs_1[15: 8]) + input_offset));
+  assign prod_2 = ($signed(cmd_payload_inputs_0[23:16]) * ($signed(cmd_payload_inputs_1[23:16]) + input_offset));
+  assign prod_3 = ($signed(cmd_payload_inputs_0[31:24]) * ($signed(cmd_payload_inputs_1[31:24]) + input_offset));
   wire signed [31:0] sum_prods;
-  assign sum_prods = prod_0;
+  assign sum_prods = prod_0 + prod_1 + prod_2 + prod_3;
 
   // If we have a response, not ready to accept a new command.
   assign cmd_ready = ~rsp_valid;
@@ -26,7 +29,7 @@ module Cfu (
     if (reset) begin
       rsp_payload_outputs_0 <= 32'b0;
       rsp_valid <= 1'b0;
-      //input_offset <= 32'b0; TODO: Check if reset is needed
+      input_offset <= 32'b0;
     end else if (rsp_valid) begin
       // Waiting to hand off response to CPU.
       rsp_valid <= ~rsp_ready;

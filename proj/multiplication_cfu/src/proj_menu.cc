@@ -23,6 +23,7 @@
 
 // Forward declarations
 void reset_acc(void);
+void reset_offset(void);
 #ifdef ENABLE_CFU_TESTS
 extern void run_all_cfu_tests(void);
 #endif
@@ -63,21 +64,29 @@ void do_exercise_cfu_op0(void) {
 
 // CFU Multiplication Demo / Testing
 void do_multiplication(void) {
-  puts("This is my own multiplication CFU!\n");
-  int8_t x = 6;
-  int8_t y = 7;
-  int32_t offset = 0;
-  cfu_op3(2, offset, 0);  // Copy offset
-  int32_t z = cfu_op3(0, x, y); // Multiply-Accumulate
-  printf("%d * (%d + %ld) = %ld\n\n", x, y, offset, z);
-  z = cfu_op3(0, x, y); // Multiply-Accumulate
-  printf("Acc + %d * (%d + %ld) = %ld\n\n", x, y, offset, z);
+  puts("This is my own multiplication CFU with SIMD packing!\n");
+  
   reset_acc();
+  reset_offset();
 
-  offset = 5;
-  cfu_op3(2, offset, 0);  // Copy offset
-  z = cfu_op3(0, x, y); // Multiply-Accumulate
-  printf("%d * (%d + %ld) = %ld\n\n", x, y, offset, z);
+  // Pack 4x int8_t values into uint32_t for SIMD test
+  uint32_t input_packed = 0x06060607;   // 4 values: 6, 6, 6, 7 as bytes
+  uint32_t filter_packed = 0x0204FD02;  // 4 values: 2, 4, -3, 2 as bytes
+  
+  int32_t z = cfu_op3(0, input_packed, filter_packed); // SIMD MAC: 4 parallel multiplies
+  printf("Packed SIMD (4x8bit): result = %ld\n", z);
+  printf("Expected: (6*2 + 6*4 + 6*-3 + 7*2) = %d\n\n", 6*2 + 6*4 + 6*(-3) + 7*2);
+  
+  reset_acc();
+  
+  // Second accumulation with different packed values
+  uint32_t input_packed2 = 0x05050505;   // 4 values: 5, 5, 5, 5
+  uint32_t filter_packed2 = 0x0303FD03;  // 4 values: 3, 3, -3, 3
+  
+  z = cfu_op3(0, input_packed2, filter_packed2); // Accumulate: 4 parallel (5*3)s
+  printf("Acc + SIMD result = %ld\n", z);
+  printf("Expected: (5*3 + 5*3 + 5*-3 + 5*3) = %d\n\n", 5*3 + 5*3 + 5*(-3) + 5*3);
+  
   reset_acc();
 #ifdef ENABLE_CFU_TESTS
   run_all_cfu_tests();
@@ -102,6 +111,10 @@ struct Menu MENU = {
 // Reset the CFU accumulator (funct7=1) - must be external for cfu_tests.cc to use
 void reset_acc(void) {
   cfu_op3(1, 0, 0);
+}
+
+void reset_offset(void) {
+  cfu_op3(2, 0, 0);
 }
 
 extern "C" void do_proj_menu() { menu_run(&MENU); }

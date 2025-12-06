@@ -17,6 +17,7 @@ limitations under the License.
 
 #include <algorithm>
 #include "perf.h"
+//#include "playground_util/print_params.h"
 #include "cfu.h"
 
 // CFU helper macros: use CFU when enabled.
@@ -50,6 +51,7 @@ inline void ConvPerChannel(
     const int8_t* filter_data, const RuntimeShape& bias_shape,
     const int32_t* bias_data, const RuntimeShape& output_shape,
     int8_t* output_data) {
+  //print_conv_params(params, input_shape, filter_shape, output_shape);
   // Get parameters.
   const int32_t input_offset = params.input_offset;  // r = s(q - Z)
   const int stride_width = params.stride_width;
@@ -98,9 +100,8 @@ inline void ConvPerChannel(
         const int in_x_origin = (out_x * stride_width) - pad_width;
         for (int out_channel = 0; out_channel < output_depth; ++out_channel) {
           auto group = out_channel / filters_per_group;
-          // Use CFU-accelerated multiply-accumulate when enabled at build time.
 #if CFU_USE_MAC
-          CFU_MAC_RESET();  // reset CFU internal accumulator (CFU maintains acc)
+          CFU_MAC_RESET();  // reset CFU internal accumulator
 #else
           int32_t acc = 0;
 #endif
@@ -119,37 +120,52 @@ inline void ConvPerChannel(
               }
               // Enable perf counter around the inner per-pixel work.
               perf_enable_counter(0);
+                
+#if CFU_USE_MAC
+              int in_channel = 0;
+              while (in_channel < filter_input_depth) {
+                if (in_channel + 4 <= filter_input_depth) {
+                  // With packing
+                  uint32_t input_val = *((uint32_t *)(input_data + Offset(input_shape, batch, in_y, in_x, in_channel + group * filter_input_depth)));
+                  uint32_t filter_val = *((uint32_t *)(filter_data + Offset(filter_shape, out_channel, filter_y, filter_x, in_channel)));
+                  CFU_MAC_ACC(filter_val, input_val);
+                  in_channel += 4;
+                }
+                else {
+                  // Without packing
+                  int8_t input_val = input_data[Offset(input_shape, batch, in_y, in_x, in_channel + group * filter_input_depth)];
+                  int8_t filter_val = filter_data[Offset(filter_shape, out_channel, filter_y, filter_x, in_channel)];
+                  CFU_MAC_ACC(filter_val, input_val);
+                  in_channel++;
+                }
+              }            
+#else
               for (int in_channel = 0; in_channel < filter_input_depth; ++in_channel) {
                 int8_t input_val = input_data[Offset(input_shape, batch, in_y, in_x, in_channel + group * filter_input_depth)];
                 int8_t filter_val = filter_data[Offset(filter_shape, out_channel, filter_y, filter_x, in_channel)];
-                
-                // Accumulate with 32 bits accumulator.
-                // In the nudging process during model quantization, we force
-                // real value of 0.0 be represented by a quantized value. This
-                // guarantees that the input_offset is a int8_t, even though
-                // it is represented using int32_t. int32_t += int8_t *
-                // (int8_t - int8_t) so the highest value we can get from each
-                // accumulation is [-127, 127] * ([-128, 127] -
-                // [-128, 127]), which is [-32512, 32512]. log2(32512)
-                // = 14.98, which means we can accumulate at least 2^16
-                // multiplications without overflow. The accumulator is
-                // applied to a filter so the accumulation logic will hold as
-                // long as the filter size (filter_y * filter_x * in_channel)
-                // does not exceed 2^16, which is the case in all the models
-                // we have seen so far.
-                // TODO(b/174275578): Add a check to make sure the
-                // accumulator depth is smaller than 2^16.
-
-#if CFU_USE_MAC
-                // Use CFU multiply-accumulate; CFU returns the updated acc.
-                CFU_MAC_ACC(filter_val, input_val);
-#else
                 acc += filter_val * (input_val + input_offset);
-#endif
               }
+#endif
               perf_disable_counter(0);
             }
           }
+
+          // Accumulate with 32 bits accumulator.
+          // In the nudging process during model quantization, we force
+          // real value of 0.0 be represented by a quantized value. This
+          // guarantees that the input_offset is a int8_t, even though
+          // it is represented using int32_t. int32_t += int8_t *
+          // (int8_t - int8_t) so the highest value we can get from each
+          // accumulation is [-127, 127] * ([-128, 127] -
+          // [-128, 127]), which is [-32512, 32512]. log2(32512)
+          // = 14.98, which means we can accumulate at least 2^16
+          // multiplications without overflow. The accumulator is
+          // applied to a filter so the accumulation logic will hold as
+          // long as the filter size (filter_y * filter_x * in_channel)
+          // does not exceed 2^16, which is the case in all the models
+          // we have seen so far.
+          // TODO(b/174275578): Add a check to make sure the
+          // accumulator depth is smaller than 2^16.
 
 #if CFU_USE_MAC
           int32_t acc = CFU_MAC_ACC(0, 0);  // retrieve final acc from CFU
