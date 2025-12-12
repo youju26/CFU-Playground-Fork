@@ -122,6 +122,8 @@ inline void ConvPerChannel(
               perf_enable_counter(0);
                 
 #if CFU_USE_MAC
+              // TODO: Check without if statement pdti8
+              // TODO: Remove if statements from inner loop for better performance.
               int in_channel = 0;
               while (in_channel < filter_input_depth) {
                 if (in_channel + 4 <= filter_input_depth) {
