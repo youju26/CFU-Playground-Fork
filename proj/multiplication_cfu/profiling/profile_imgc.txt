@@ -1,0 +1,375 @@
+--============== Boot ==================--
+Booting from serial...
+Press Q or ESC to abort boot completely.
+sL5DdSMmkekro
+[LITEX-TERM] Received firmware download request from the device.
+[LITEX-TERM] Uploading /home/julius/CFU-Playground-Fork/proj/multiplication_cfu/build/software.bin to 0x40000000 (1077992 bytes)...
+[LITEX-TERM] Upload calibration... (inter-frame: 10.00us, length: 64)
+[LITEX-TERM] Upload complete (165.0KB/s).
+[LITEX-TERM] Booting the device.
+[LITEX-TERM] Done.
+Executing booted program at 0x40000000
+
+--============= Liftoff! ===============--
+Hello, World!
+
+CFU Playground
+==============
+ 1: TfLM Models menu
+ 2: Functional CFU Tests
+ 3: Project menu
+ 4: Performance Counter Tests
+ 5: TFLite Unit Tests
+ 6: Benchmarks
+ 7: Util Tests
+ 8: Embench IoT
+ d: Donut demo
+main> 1
+
+Running TfLM Models menu
+
+TfLM Models
+===========
+ 1: Person Detection int8 model
+ 2: MLCommons Tiny V0.1 Image Classification
+ x: eXit to previous menu
+models> 2
+
+Running MLCommons Tiny V0.1 Image Classification
+Error_reporter OK!
+Input: 3072 bytes, 4 dims: 1 32 32 3
+
+
+Tests for imgc model
+====================
+ 0: Run with airplane input
+ 1: Run with car input
+ 2: Run with bird input
+ 3: Run with cat input
+ g: Run golden tests (check for expected outputs)
+ x: eXit to previous menu
+imgc> g
+
+Running Run golden tests (check for expected outputs)
+Copied 3072 bytes at 0x4010a9b0
+Running imgc
+................
+"Event","Tag","Ticks"
+0,CONV_2D,17787
+1,CONV_2D,22351
+2,CONV_2D,20653
+3,ADD,3875
+4,CONV_2D,11146
+5,CONV_2D,16616
+6,CONV_2D,2380
+7,ADD,1989
+8,CONV_2D,9496
+9,CONV_2D,14960
+10,CONV_2D,1796
+11,ADD,474
+12,AVERAGE_POOL_2D,43
+13,RESHAPE,3
+14,FULLY_CONNECTED,13
+15,SOFTMAX,30
+ Counter |  Total | Starts | Average |     Raw
+---------+--------+--------+---------+--------------
+    0    |    72M | 639648  |   112   |     72116910
+    1    |     0  |     0  |   n/a   |            0
+    2    |     0  |     0  |   n/a   |            0
+    3    |     0  |     0  |   n/a   |            0
+    4    |     0  |     0  |   n/a   |            0
+    5    |  9946  |     1  |  9946   |         9946
+    6    |     0  |     0  |   n/a   |            0
+    7    |     0  |     0  |   n/a   |            0
+   127M (    126603799 )  cycles total
+Copied 3072 bytes at 0x4010a9b0
+Running imgc
+................
+"Event","Tag","Ticks"
+0,CONV_2D,17777
+1,CONV_2D,22347
+2,CONV_2D,20650
+3,ADD,3872
+4,CONV_2D,11148
+5,CONV_2D,16609
+6,CONV_2D,2381
+7,ADD,1985
+8,CONV_2D,9498
+9,CONV_2D,14958
+10,CONV_2D,1795
+11,ADD,471
+12,AVERAGE_POOL_2D,42
+13,RESHAPE,3
+14,FULLY_CONNECTED,14
+15,SOFTMAX,18
+ Counter |  Total | Starts | Average |     Raw
+---------+--------+--------+---------+--------------
+    0    |    72M | 639648  |   112   |     72112838
+    1    |     0  |     0  |   n/a   |            0
+    2    |     0  |     0  |   n/a   |            0
+    3    |     0  |     0  |   n/a   |            0
+    4    |     0  |     0  |   n/a   |            0
+    5    |  9991  |     1  |  9991   |         9991
+    6    |     0  |     0  |   n/a   |            0
+    7    |     0  |     0  |   n/a   |            0
+   127M (    126557877 )  cycles total
+Copied 3072 bytes at 0x4010a9b0
+Running imgc
+................
+"Event","Tag","Ticks"
+0,CONV_2D,17790
+1,CONV_2D,22356
+2,CONV_2D,20655
+3,ADD,3875
+4,CONV_2D,11147
+5,CONV_2D,16611
+6,CONV_2D,2378
+7,ADD,1983
+8,CONV_2D,9496
+9,CONV_2D,14964
+10,CONV_2D,1796
+11,ADD,478
+12,AVERAGE_POOL_2D,41
+13,RESHAPE,2
+14,FULLY_CONNECTED,13
+15,SOFTMAX,28
+ Counter |  Total | Starts | Average |     Raw
+---------+--------+--------+---------+--------------
+    0    |    72M | 639648  |   112   |     72110650
+    1    |     0  |     0  |   n/a   |            0
+    2    |     0  |     0  |   n/a   |            0
+    3    |     0  |     0  |   n/a   |            0
+    4    |     0  |     0  |   n/a   |            0
+    5    |  9929  |     1  |  9929   |         9929
+    6    |     0  |     0  |   n/a   |            0
+    7    |     0  |     0  |   n/a   |            0
+   127M (    126609340 )  cycles total
+Copied 3072 bytes at 0x4010a9b0
+Running imgc
+................
+"Event","Tag","Ticks"
+0,CONV_2D,17777
+1,CONV_2D,22350
+2,CONV_2D,20650
+3,ADD,3869
+4,CONV_2D,11150
+5,CONV_2D,16617
+6,CONV_2D,2380
+7,ADD,1992
+8,CONV_2D,9498
+9,CONV_2D,14964
+10,CONV_2D,1795
+11,ADD,479
+12,AVERAGE_POOL_2D,41
+13,RESHAPE,2
+14,FULLY_CONNECTED,14
+15,SOFTMAX,28
+ Counter |  Total | Starts | Average |     Raw
+---------+--------+--------+---------+--------------
+    0    |    72M | 639648  |   112   |     72113954
+    1    |     0  |     0  |   n/a   |            0
+    2    |     0  |     0  |   n/a   |            0
+    3    |     0  |     0  |   n/a   |            0
+    4    |     0  |     0  |   n/a   |            0
+    5    |  9957  |     1  |  9957   |         9957
+    6    |     0  |     0  |   n/a   |            0
+    7    |     0  |     0  |   n/a   |            0
+   127M (    126599128 )  cycles total
+Copied 3072 bytes at 0x4010a9b0
+Running imgc
+................
+"Event","Tag","Ticks"
+0,CONV_2D,17799
+1,CONV_2D,22359
+2,CONV_2D,20652
+3,ADD,3875
+4,CONV_2D,11147
+5,CONV_2D,16613
+6,CONV_2D,2381
+7,ADD,1989
+8,CONV_2D,9496
+9,CONV_2D,14963
+10,CONV_2D,1793
+11,ADD,478
+12,AVERAGE_POOL_2D,42
+13,RESHAPE,3
+14,FULLY_CONNECTED,14
+15,SOFTMAX,28
+ Counter |  Total | Starts | Average |     Raw
+---------+--------+--------+---------+--------------
+    0    |    72M | 639648  |   112   |     72110809
+    1    |     0  |     0  |   n/a   |            0
+    2    |     0  |     0  |   n/a   |            0
+    3    |     0  |     0  |   n/a   |            0
+    4    |     0  |     0  |   n/a   |            0
+    5    |  9929  |     1  |  9929   |         9929
+    6    |     0  |     0  |   n/a   |            0
+    7    |     0  |     0  |   n/a   |            0
+   127M (    126625745 )  cycles total
+Copied 3072 bytes at 0x4010a9b0
+Running imgc
+................
+"Event","Tag","Ticks"
+0,CONV_2D,17774
+1,CONV_2D,22344
+2,CONV_2D,20654
+3,ADD,3866
+4,CONV_2D,11146
+5,CONV_2D,16614
+6,CONV_2D,2381
+7,ADD,1990
+8,CONV_2D,9496
+9,CONV_2D,14959
+10,CONV_2D,1798
+11,ADD,476
+12,AVERAGE_POOL_2D,42
+13,RESHAPE,3
+14,FULLY_CONNECTED,14
+15,SOFTMAX,28
+ Counter |  Total | Starts | Average |     Raw
+---------+--------+--------+---------+--------------
+    0    |    72M | 639648  |   112   |     72115632
+    1    |     0  |     0  |   n/a   |            0
+    2    |     0  |     0  |   n/a   |            0
+    3    |     0  |     0  |   n/a   |            0
+    4    |     0  |     0  |   n/a   |            0
+    5    |  9946  |     1  |  9946   |         9946
+    6    |     0  |     0  |   n/a   |            0
+    7    |     0  |     0  |   n/a   |            0
+   127M (    126578240 )  cycles total
+Copied 3072 bytes at 0x4010a9b0
+Running imgc
+................
+"Event","Tag","Ticks"
+0,CONV_2D,17787
+1,CONV_2D,22353
+2,CONV_2D,20656
+3,ADD,3879
+4,CONV_2D,11148
+5,CONV_2D,16614
+6,CONV_2D,2382
+7,ADD,1991
+8,CONV_2D,9493
+9,CONV_2D,14961
+10,CONV_2D,1795
+11,ADD,470
+12,AVERAGE_POOL_2D,42
+13,RESHAPE,3
+14,FULLY_CONNECTED,14
+15,SOFTMAX,22
+ Counter |  Total | Starts | Average |     Raw
+---------+--------+--------+---------+--------------
+    0    |    72M | 639648  |   112   |     72108699
+    1    |     0  |     0  |   n/a   |            0
+    2    |     0  |     0  |   n/a   |            0
+    3    |     0  |     0  |   n/a   |            0
+    4    |     0  |     0  |   n/a   |            0
+    5    |  9952  |     1  |  9952   |         9952
+    6    |     0  |     0  |   n/a   |            0
+    7    |     0  |     0  |   n/a   |            0
+   127M (    126603019 )  cycles total
+Copied 3072 bytes at 0x4010a9b0
+Running imgc
+................
+"Event","Tag","Ticks"
+0,CONV_2D,17795
+1,CONV_2D,22349
+2,CONV_2D,20647
+3,ADD,3866
+4,CONV_2D,11145
+5,CONV_2D,16609
+6,CONV_2D,2378
+7,ADD,1979
+8,CONV_2D,9493
+9,CONV_2D,14959
+10,CONV_2D,1795
+11,ADD,471
+12,AVERAGE_POOL_2D,42
+13,RESHAPE,3
+14,FULLY_CONNECTED,14
+15,SOFTMAX,28
+ Counter |  Total | Starts | Average |     Raw
+---------+--------+--------+---------+--------------
+    0    |    72M | 639648  |   112   |     72112729
+    1    |     0  |     0  |   n/a   |            0
+    2    |     0  |     0  |   n/a   |            0
+    3    |     0  |     0  |   n/a   |            0
+    4    |     0  |     0  |   n/a   |            0
+    5    |  9952  |     1  |  9952   |         9952
+    6    |     0  |     0  |   n/a   |            0
+    7    |     0  |     0  |   n/a   |            0
+   127M (    126564310 )  cycles total
+Copied 3072 bytes at 0x4010a9b0
+Running imgc
+................
+"Event","Tag","Ticks"
+0,CONV_2D,17786
+1,CONV_2D,22356
+2,CONV_2D,20659
+3,ADD,3885
+4,CONV_2D,11150
+5,CONV_2D,16618
+6,CONV_2D,2381
+7,ADD,1995
+8,CONV_2D,9499
+9,CONV_2D,14957
+10,CONV_2D,1795
+11,ADD,473
+12,AVERAGE_POOL_2D,42
+13,RESHAPE,3
+14,FULLY_CONNECTED,14
+15,SOFTMAX,18
+ Counter |  Total | Starts | Average |     Raw
+---------+--------+--------+---------+--------------
+    0    |    72M | 639648  |   112   |     72112695
+    1    |     0  |     0  |   n/a   |            0
+    2    |     0  |     0  |   n/a   |            0
+    3    |     0  |     0  |   n/a   |            0
+    4    |     0  |     0  |   n/a   |            0
+    5    |  9946  |     1  |  9946   |         9946
+    6    |     0  |     0  |   n/a   |            0
+    7    |     0  |     0  |   n/a   |            0
+   127M (    126621338 )  cycles total
+Copied 3072 bytes at 0x4010a9b0
+Running imgc
+................
+"Event","Tag","Ticks"
+0,CONV_2D,17788
+1,CONV_2D,22357
+2,CONV_2D,20659
+3,ADD,3892
+4,CONV_2D,11150
+5,CONV_2D,16613
+6,CONV_2D,2381
+7,ADD,1990
+8,CONV_2D,9502
+9,CONV_2D,14955
+10,CONV_2D,1796
+11,ADD,470
+12,AVERAGE_POOL_2D,42
+13,RESHAPE,3
+14,FULLY_CONNECTED,14
+15,SOFTMAX,26
+ Counter |  Total | Starts | Average |     Raw
+---------+--------+--------+---------+--------------
+    0    |    72M | 639648  |   112   |     72106222
+    1    |     0  |     0  |   n/a   |            0
+    2    |     0  |     0  |   n/a   |            0
+    3    |     0  |     0  |   n/a   |            0
+    4    |     0  |     0  |   n/a   |            0
+    5    |  9952  |     1  |  9952   |         9952
+    6    |     0  |     0  |   n/a   |            0
+    7    |     0  |     0  |   n/a   |            0
+   127M (    126632232 )  cycles total
+OK   Golden tests passed
+---
+
+Tests for imgc model
+====================
+ 0: Run with airplane input
+ 1: Run with car input
+ 2: Run with bird input
+ 3: Run with cat input
+ g: Run golden tests (check for expected outputs)
+ x: eXit to previous menu
+imgc>

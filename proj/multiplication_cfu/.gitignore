@@ -1,2 +1,6 @@
 .vscode
 .github
+
+# Profiling outputs
+#profile_*.txt
+#profile_*.png

@@ -1,0 +1,200 @@
+--============== Boot ==================--
+Booting from serial...
+Press Q or ESC to abort boot completely.
+sL5DdSMmkekro
+[LITEX-TERM] Received firmware download request from the device.
+[LITEX-TERM] Uploading /home/julius/CFU-Playground-Fork/proj/multiplication_cfu/build/software.bin to 0x40000000 (1077992 bytes)...
+[LITEX-TERM] Upload calibration... (inter-frame: 10.00us, length: 64)
+[LITEX-TERM] Upload complete (169.2KB/s).
+[LITEX-TERM] Booting the device.
+[LITEX-TERM] Done.
+Executing booted program at 0x40000000
+
+--============= Liftoff! ===============--
+Hello, World!
+
+CFU Playground
+==============
+ 1: TfLM Models menu
+ 2: Functional CFU Tests
+ 3: Project menu
+ 4: Performance Counter Tests
+ 5: TFLite Unit Tests
+ 6: Benchmarks
+ 7: Util Tests
+ 8: Embench IoT
+ d: Donut demo
+main> 1
+
+Running TfLM Models menu
+
+TfLM Models
+===========
+ 1: Person Detection int8 model
+ 2: MLCommons Tiny V0.1 Image Classification
+ x: eXit to previous menu
+models> 1
+
+Running Person Detection int8 model
+Error_reporter OK!
+Input: 9216 bytes, 4 dims: 1 96 96 1
+
+
+Tests for pdti8 model
+=====================
+ 1: Run with zeros input
+ 2: Run with no-person input
+ 3: Run with person input
+ g: Run golden tests (check for expected outputs)
+ x: eXit to previous menu
+pdti8> g
+
+Running Run golden tests (check for expected outputs)
+Zeroed 9216 bytes at 0x4010f1b0
+Running pdti8
+...............................
+"Event","Tag","Ticks"
+0,DEPTHWISE_CONV_2D,8741
+1,DEPTHWISE_CONV_2D,9048
+2,CONV_2D,9686
+3,DEPTHWISE_CONV_2D,4698
+4,CONV_2D,5443
+5,DEPTHWISE_CONV_2D,12840
+6,CONV_2D,7325
+7,DEPTHWISE_CONV_2D,5537
+8,CONV_2D,3702
+9,DEPTHWISE_CONV_2D,4968
+10,CONV_2D,5224
+11,DEPTHWISE_CONV_2D,1217
+12,CONV_2D,2677
+13,DEPTHWISE_CONV_2D,2557
+14,CONV_2D,4992
+15,DEPTHWISE_CONV_2D,2218
+16,CONV_2D,5172
+17,DEPTHWISE_CONV_2D,2894
+18,CONV_2D,5002
+19,DEPTHWISE_CONV_2D,2053
+20,CONV_2D,4948
+21,DEPTHWISE_CONV_2D,2001
+22,CONV_2D,4973
+23,DEPTHWISE_CONV_2D,537
+24,CONV_2D,2943
+25,DEPTHWISE_CONV_2D,1006
+26,CONV_2D,4184
+27,AVERAGE_POOL_2D,51
+28,CONV_2D,8
+29,RESHAPE,2
+30,SOFTMAX,12
+ Counter |  Total | Starts | Average |     Raw
+---------+--------+--------+---------+--------------
+    0    |    38M | 124418  |   304   |     37846397
+    1    |     0  |     0  |   n/a   |            0
+    2    |    62M |    14  |  4406k  |     61689020
+    3    |     0  |     0  |   n/a   |            0
+    4    |     0  |     0  |   n/a   |            0
+    5    |     0  |     0  |   n/a   |            0
+    6    |     0  |     0  |   n/a   |            0
+    7    |     0  |     0  |   n/a   |            0
+   130M (    129752463 )  cycles total
+Copied 9216 bytes at 0x4010f1b0
+Running pdti8
+...............................
+"Event","Tag","Ticks"
+0,DEPTHWISE_CONV_2D,8726
+1,DEPTHWISE_CONV_2D,9053
+2,CONV_2D,9689
+3,DEPTHWISE_CONV_2D,4700
+4,CONV_2D,5435
+5,DEPTHWISE_CONV_2D,12840
+6,CONV_2D,7296
+7,DEPTHWISE_CONV_2D,5529
+8,CONV_2D,3681
+9,DEPTHWISE_CONV_2D,4965
+10,CONV_2D,5224
+11,DEPTHWISE_CONV_2D,1217
+12,CONV_2D,2669
+13,DEPTHWISE_CONV_2D,2557
+14,CONV_2D,4990
+15,DEPTHWISE_CONV_2D,2218
+16,CONV_2D,5164
+17,DEPTHWISE_CONV_2D,2893
+18,CONV_2D,5003
+19,DEPTHWISE_CONV_2D,2053
+20,CONV_2D,4944
+21,DEPTHWISE_CONV_2D,2002
+22,CONV_2D,4975
+23,DEPTHWISE_CONV_2D,537
+24,CONV_2D,2939
+25,DEPTHWISE_CONV_2D,1009
+26,CONV_2D,4184
+27,AVERAGE_POOL_2D,51
+28,CONV_2D,8
+29,RESHAPE,2
+30,SOFTMAX,11
+ Counter |  Total | Starts | Average |     Raw
+---------+--------+--------+---------+--------------
+    0    |    38M | 124418  |   304   |     37846805
+    1    |     0  |     0  |   n/a   |            0
+    2    |    62M |    14  |  4405k  |     61673950
+    3    |     0  |     0  |   n/a   |            0
+    4    |     0  |     0  |   n/a   |            0
+    5    |     0  |     0  |   n/a   |            0
+    6    |     0  |     0  |   n/a   |            0
+    7    |     0  |     0  |   n/a   |            0
+   130M (    129647116 )  cycles total
+Copied 9216 bytes at 0x4010f1b0
+Running pdti8
+...............................
+"Event","Tag","Ticks"
+0,DEPTHWISE_CONV_2D,8725
+1,DEPTHWISE_CONV_2D,9052
+2,CONV_2D,9688
+3,DEPTHWISE_CONV_2D,4702
+4,CONV_2D,5436
+5,DEPTHWISE_CONV_2D,12839
+6,CONV_2D,7295
+7,DEPTHWISE_CONV_2D,5527
+8,CONV_2D,3680
+9,DEPTHWISE_CONV_2D,4966
+10,CONV_2D,5222
+11,DEPTHWISE_CONV_2D,1217
+12,CONV_2D,2669
+13,DEPTHWISE_CONV_2D,2557
+14,CONV_2D,4987
+15,DEPTHWISE_CONV_2D,2219
+16,CONV_2D,5165
+17,DEPTHWISE_CONV_2D,2891
+18,CONV_2D,4998
+19,DEPTHWISE_CONV_2D,2053
+20,CONV_2D,4945
+21,DEPTHWISE_CONV_2D,2001
+22,CONV_2D,4971
+23,DEPTHWISE_CONV_2D,536
+24,CONV_2D,2938
+25,DEPTHWISE_CONV_2D,1008
+26,CONV_2D,4183
+27,AVERAGE_POOL_2D,51
+28,CONV_2D,8
+29,RESHAPE,2
+30,SOFTMAX,11
+ Counter |  Total | Starts | Average |     Raw
+---------+--------+--------+---------+--------------
+    0    |    38M | 124418  |   304   |     37828546
+    1    |     0  |     0  |   n/a   |            0
+    2    |    62M |    14  |  4405k  |     61669895
+    3    |     0  |     0  |   n/a   |            0
+    4    |     0  |     0  |   n/a   |            0
+    5    |     0  |     0  |   n/a   |            0
+    6    |     0  |     0  |   n/a   |            0
+    7    |     0  |     0  |   n/a   |            0
+   130M (    129631790 )  cycles total
+OK   Golden tests passed
+---
+
+Tests for pdti8 model
+=====================
+ 1: Run with zeros input
+ 2: Run with no-person input
+ 3: Run with person input
+ g: Run golden tests (check for expected outputs)
+ x: eXit to previous menu
