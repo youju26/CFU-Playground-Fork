@@ -89,10 +89,16 @@ inline void ConvPerChannel(
   const int filters_per_group = output_depth / groups;
   const int output_height = output_shape.Dims(1);
   const int output_width = output_shape.Dims(2);
-  // Copy offset into CFU, depending on DNN model
+
 #if CFU_USE_MAC
+  // Reduced input depth for packed MAC operations, process 4 channels at a time
+  const int reduced_filter_input_depth = filter_input_depth - (filter_input_depth % 4);
+  // Remaining channels to process after packed MAC
+  const int remaining_filter_input_depth = filter_input_depth % 4;
+  // Copy input offset to CFU
   CFU_MAC_COPY_OFFSET(input_offset);
 #endif
+
   for (int batch = 0; batch < batches; ++batch) {
     for (int out_y = 0; out_y < output_height; ++out_y) {
       const int in_y_origin = (out_y * stride_height) - pad_height;
@@ -122,25 +128,23 @@ inline void ConvPerChannel(
               perf_enable_counter(0);
                 
 #if CFU_USE_MAC
-              // TODO: Check without if statement pdti8
-              // TODO: Remove if statements from inner loop for better performance.
-              int in_channel = 0;
-              while (in_channel < filter_input_depth) {
-                if (in_channel + 4 <= filter_input_depth) {
-                  // With packing
-                  uint32_t input_val = *((uint32_t *)(input_data + Offset(input_shape, batch, in_y, in_x, in_channel + group * filter_input_depth)));
-                  uint32_t filter_val = *((uint32_t *)(filter_data + Offset(filter_shape, out_channel, filter_y, filter_x, in_channel)));
-                  CFU_MAC_ACC(filter_val, input_val);
-                  in_channel += 4;
-                }
-                else {
-                  // Without packing
-                  int8_t input_val = input_data[Offset(input_shape, batch, in_y, in_x, in_channel + group * filter_input_depth)];
-                  int8_t filter_val = filter_data[Offset(filter_shape, out_channel, filter_y, filter_x, in_channel)];
-                  CFU_MAC_ACC(filter_val, input_val);
-                  in_channel++;
-                }
-              }            
+              // Process 4 channels at a time
+              // reduced_filter_input_depth is multiple of 4
+              for (int in_channel = 0; in_channel < reduced_filter_input_depth; in_channel += 4) {
+                //With packing
+                uint32_t input_val = *((uint32_t *)(input_data + Offset(input_shape, batch, in_y, in_x, in_channel + group * filter_input_depth)));
+                uint32_t filter_val = *((uint32_t *)(filter_data + Offset(filter_shape, out_channel, filter_y, filter_x, in_channel)));
+                CFU_MAC_ACC(filter_val, input_val);
+              }
+              // Process remaining channels
+              uint32_t input_val = 0;
+              uint32_t filter_val = 0;
+              for (int i = 0; i < remaining_filter_input_depth; i++) {
+                input_val |= ((uint32_t)(uint8_t)input_data[Offset(input_shape, batch, in_y, in_x, reduced_filter_input_depth + i + group * filter_input_depth)]) << (i * 8);
+                filter_val |= ((uint32_t)(uint8_t)filter_data[Offset(filter_shape, out_channel, filter_y, filter_x, reduced_filter_input_depth + i)]) << (i * 8);
+              }
+              CFU_MAC_ACC(filter_val, input_val);
+              
 #else
               for (int in_channel = 0; in_channel < filter_input_depth; ++in_channel) {
                 int8_t input_val = input_data[Offset(input_shape, batch, in_y, in_x, in_channel + group * filter_input_depth)];
