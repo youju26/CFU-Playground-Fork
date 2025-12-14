@@ -106,3 +106,8 @@ venv
 # Vivado
 *.jou
 *.log
+
+# Windows Zone Identifier Files
+*.zone.identifier
+:zone.identifier
+Zone.Identifier
