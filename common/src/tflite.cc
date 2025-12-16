@@ -83,6 +83,9 @@ constexpr int kTensorArenaSize = const_max<int>(
 #ifdef INCLUDE_MODEL_PDTI8
     81 * 1024,
 #endif
+#ifdef INCLUDE_MODEL_MCUNET_VWW
+    230 * 1024, // TODO: Check what minimum memory is needed
+#endif
 #ifdef INCLUDE_MODEL_MICRO_SPEECH
     7 * 1024,
 #endif
