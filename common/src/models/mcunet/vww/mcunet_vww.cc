@@ -19,10 +19,6 @@
 #include <stdio.h>
 
 #include "menu.h"
-#include "models/mcunet/vww/test_data/mcunet_quant_test_no_0.h"
-#include "models/mcunet/vww/test_data/mcunet_quant_test_no_1.h"
-#include "models/mcunet/vww/test_data/mcunet_quant_test_yes_0.h"
-#include "models/mcunet/vww/test_data/mcunet_quant_test_yes_1.h"
 #include "models/mcunet/vww/test_data/person.h"
 #include "models/mcunet/vww/test_data/no_person.h"
 #include "tflite.h"
