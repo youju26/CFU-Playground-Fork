@@ -1,0 +1,369 @@
+--============= [1mLiftoff![0m ===============--
+
+Hello, World!
+
+
+CFU Playground
+
+==============
+
+ 1: TfLM Models menu
+
+ 2: Functional CFU Tests
+
+ 3: Project menu
+
+ 4: Performance Counter Tests
+
+ 5: TFLite Unit Tests
+
+ 6: Benchmarks
+
+ 7: Util Tests
+
+ 8: Embench IoT
+
+ d: Donut demo
+
+main> 1
+
+
+Running TfLM Models menu
+
+
+TfLM Models
+
+===========
+
+ 1: Person Detection int8 model
+
+ 2: MLCommons Tiny V0.1 Image Classification
+
+ x: eXit to previous menu
+
+models> 1
+
+
+Running Person Detection int8 model
+
+Error_reporter OK!
+
+Input: 9216 bytes, 4 dims: 1 96 96 1
+
+
+
+Tests for pdti8 model
+
+=====================
+
+ 1: Run with zeros input
+
+ 2: Run with no-person input
+
+ 3: Run with person input
+
+ g: Run golden tests (check for expected outputs)
+
+ x: eXit to previous menu
+
+pdti8> g
+
+
+Running Run golden tests (check for expected outputs)
+
+Zeroed 9216 bytes at 0x4010f2b0
+
+Running pdti8
+
+...............................
+
+"Event","Tag","Ticks"
+
+0,DEPTHWISE_CONV_2D,8644
+
+1,DEPTHWISE_CONV_2D,9040
+
+2,CONV_2D,10177
+
+3,DEPTHWISE_CONV_2D,4660
+
+4,CONV_2D,5380
+
+5,DEPTHWISE_CONV_2D,12840
+
+6,CONV_2D,6650
+
+7,DEPTHWISE_CONV_2D,2759
+
+8,CONV_2D,3365
+
+9,DEPTHWISE_CONV_2D,4821
+
+10,CONV_2D,4272
+
+11,DEPTHWISE_CONV_2D,1151
+
+12,CONV_2D,2323
+
+13,DEPTHWISE_CONV_2D,2212
+
+14,CONV_2D,3760
+
+15,DEPTHWISE_CONV_2D,2355
+
+16,CONV_2D,4048
+
+17,DEPTHWISE_CONV_2D,3166
+
+18,CONV_2D,3704
+
+19,DEPTHWISE_CONV_2D,2139
+
+20,CONV_2D,3748
+
+21,DEPTHWISE_CONV_2D,2090
+
+22,CONV_2D,3755
+
+23,DEPTHWISE_CONV_2D,567
+
+24,CONV_2D,2071
+
+25,DEPTHWISE_CONV_2D,966
+
+26,CONV_2D,3144
+
+27,AVERAGE_POOL_2D,51
+
+28,CONV_2D,8
+
+29,RESHAPE,2
+
+30,SOFTMAX,13
+
+ Counter |  Total | Starts | Average |     Raw
+
+---------+--------+--------+---------+--------------
+
+    0    |    25M | 124418  |   200   |     24926027
+
+    1    |     0  |     0  |   n/a   |            0
+
+    2    |    59M |    14  |  4193k  |     58706278
+
+    3    |     0  |     0  |   n/a   |            0
+
+    4    |     0  |     0  |   n/a   |            0
+
+    5    |     0  |     0  |   n/a   |            0
+
+    6    |     0  |     0  |   n/a   |            0
+
+    7    |     0  |     0  |   n/a   |            0
+
+   117M (    116674721 )  cycles total
+
+Copied 9216 bytes at 0x4010f2b0
+
+Running pdti8
+
+...............................
+
+"Event","Tag","Ticks"
+
+0,DEPTHWISE_CONV_2D,8632
+
+1,DEPTHWISE_CONV_2D,9044
+
+2,CONV_2D,10175
+
+3,DEPTHWISE_CONV_2D,4661
+
+4,CONV_2D,5370
+
+5,DEPTHWISE_CONV_2D,12838
+
+6,CONV_2D,6633
+
+7,DEPTHWISE_CONV_2D,2758
+
+8,CONV_2D,3346
+
+9,DEPTHWISE_CONV_2D,4820
+
+10,CONV_2D,4269
+
+11,DEPTHWISE_CONV_2D,1152
+
+12,CONV_2D,2314
+
+13,DEPTHWISE_CONV_2D,2213
+
+14,CONV_2D,3764
+
+15,DEPTHWISE_CONV_2D,2356
+
+16,CONV_2D,4043
+
+17,DEPTHWISE_CONV_2D,3162
+
+18,CONV_2D,3702
+
+19,DEPTHWISE_CONV_2D,2140
+
+20,CONV_2D,3746
+
+21,DEPTHWISE_CONV_2D,2091
+
+22,CONV_2D,3755
+
+23,DEPTHWISE_CONV_2D,567
+
+24,CONV_2D,2069
+
+25,DEPTHWISE_CONV_2D,967
+
+26,CONV_2D,3138
+
+27,AVERAGE_POOL_2D,51
+
+28,CONV_2D,8
+
+29,RESHAPE,2
+
+30,SOFTMAX,11
+
+ Counter |  Total | Starts | Average |     Raw
+
+---------+--------+--------+---------+--------------
+
+    0    |    25M | 124418  |   200   |     24932937
+
+    1    |     0  |     0  |   n/a   |            0
+
+    2    |    59M |    14  |  4192k  |     58694908
+
+    3    |     0  |     0  |   n/a   |            0
+
+    4    |     0  |     0  |   n/a   |            0
+
+    5    |     0  |     0  |   n/a   |            0
+
+    6    |     0  |     0  |   n/a   |            0
+
+    7    |     0  |     0  |   n/a   |            0
+
+   117M (    116581296 )  cycles total
+
+Copied 9216 bytes at 0x4010f2b0
+
+Running pdti8
+
+...............................
+
+"Event","Tag","Ticks"
+
+0,DEPTHWISE_CONV_2D,8630
+
+1,DEPTHWISE_CONV_2D,9044
+
+2,CONV_2D,10178
+
+3,DEPTHWISE_CONV_2D,4662
+
+4,CONV_2D,5372
+
+5,DEPTHWISE_CONV_2D,12834
+
+6,CONV_2D,6633
+
+7,DEPTHWISE_CONV_2D,2758
+
+8,CONV_2D,3346
+
+9,DEPTHWISE_CONV_2D,4820
+
+10,CONV_2D,4266
+
+11,DEPTHWISE_CONV_2D,1151
+
+12,CONV_2D,2314
+
+13,DEPTHWISE_CONV_2D,2213
+
+14,CONV_2D,3765
+
+15,DEPTHWISE_CONV_2D,2354
+
+16,CONV_2D,4045
+
+17,DEPTHWISE_CONV_2D,3164
+
+18,CONV_2D,3702
+
+19,DEPTHWISE_CONV_2D,2139
+
+20,CONV_2D,3744
+
+21,DEPTHWISE_CONV_2D,2091
+
+22,CONV_2D,3752
+
+23,DEPTHWISE_CONV_2D,567
+
+24,CONV_2D,2071
+
+25,DEPTHWISE_CONV_2D,968
+
+26,CONV_2D,3139
+
+27,AVERAGE_POOL_2D,52
+
+28,CONV_2D,8
+
+29,RESHAPE,2
+
+30,SOFTMAX,12
+
+ Counter |  Total | Starts | Average |     Raw
+
+---------+--------+--------+---------+--------------
+
+    0    |    25M | 124418  |   200   |     24934747
+
+    1    |     0  |     0  |   n/a   |            0
+
+    2    |    59M |    14  |  4192k  |     58691771
+
+    3    |     0  |     0  |   n/a   |            0
+
+    4    |     0  |     0  |   n/a   |            0
+
+    5    |     0  |     0  |   n/a   |            0
+
+    6    |     0  |     0  |   n/a   |            0
+
+    7    |     0  |     0  |   n/a   |            0
+
+   117M (    116583587 )  cycles total
+
+OK   Golden tests passed
+
+---
+
+
+Tests for pdti8 model
+
+=====================
+
+ 1: Run with zeros input
+
+ 2: Run with no-person input
+
+ 3: Run with person input
+
+ g: Run golden tests (check for expected outputs)
+
+ x: eXit to previous menu
+
+pdti8> 
