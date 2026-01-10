@@ -61,7 +61,4 @@ export TARGET=digilent_arty
 # Use Vivado Toolchain
 export USE_VIVADO=1
 
-# Number of Threads for Building
-export BUILD_JOBS=16
-
 include ../proj.mk
