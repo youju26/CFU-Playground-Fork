@@ -26,20 +26,29 @@ DEFINES += NDEBUG
 #DEFINES += NPROFILE
 
 # Uncomment to include specified model in built binary
-DEFINES += INCLUDE_MODEL_PDTI8
+#DEFINES += INCLUDE_MODEL_PDTI8
 #DEFINES += INCLUDE_MODEL_MICRO_SPEECH
 #DEFINES += INCLUDE_MODEL_MAGIC_WAND
 #DEFINES += INCLUDE_MODEL_MNV2
 #DEFINES += INCLUDE_MODEL_HPS
-#DEFINES += INCLUDE_MODEL_MLCOMMONS_TINY_V01_ANOMD
-#DEFINES += INCLUDE_MODEL_MLCOMMONS_TINY_V01_IMGC
-#DEFINES += INCLUDE_MODEL_MLCOMMONS_TINY_V01_KWS
-#DEFINES += INCLUDE_MODEL_MLCOMMONS_TINY_V01_VWW
+DEFINES += INCLUDE_MODEL_MLCOMMONS_TINY_V01_KWS
 
 # Uncomment to include all TFLM examples (pdti8, micro_speech, magic_wand)
 #DEFINES += INCLUDE_ALL_TFLM_EXAMPLES
 
 # Uncomment this line to include the ASCII animated donut demo.
 DEFINES += DONUT_DEMO
+
+# Profiling options
+#DEFINES += SHOW_MEMORY_USE
+
+# Show CSR Counters
+export EXTRA_LITEX_ARGS="--cpu-variant=perf+cfu"
+
+# Target Digilent Arty
+export TARGET = digilent_arty
+
+# Use Vivado Toolchain
+export USE_VIVADO = 1
 
 include ../proj.mk
