@@ -14,16 +14,10 @@
 # limitations under the License.
 
 # This variable lists symbols to define to the C preprocessor
-export DEFINES := 
+export DEFINES :=
 
 # Uncomment this line to use software defined CFU functions in software_cfu.cc
 #DEFINES += CFU_SOFTWARE_DEFINED
-
-# Uncomment this line to enable CFU acceleration
-DEFINES += USE_CFU
-
-# Uncomment this line to enable comprehensive CFU multiplication tests
-#DEFINES += ENABLE_CFU_TESTS
 
 # Uncomment this line to skip debug code (large effect on performance)
 DEFINES += NDEBUG
@@ -37,31 +31,15 @@ DEFINES += INCLUDE_MODEL_PDTI8
 #DEFINES += INCLUDE_MODEL_MAGIC_WAND
 #DEFINES += INCLUDE_MODEL_MNV2
 #DEFINES += INCLUDE_MODEL_HPS
-DEFINES += INCLUDE_MODEL_MLCOMMONS_TINY_V01_ANOMD
-DEFINES += INCLUDE_MODEL_MLCOMMONS_TINY_V01_IMGC
-DEFINES += INCLUDE_MODEL_MLCOMMONS_TINY_V01_KWS
-DEFINES += INCLUDE_MODEL_MLCOMMONS_TINY_V01_VWW
-#DEFINES += INCLUDE_MODEL_MCUNET_VWW
+#DEFINES += INCLUDE_MODEL_MLCOMMONS_TINY_V01_ANOMD
+#DEFINES += INCLUDE_MODEL_MLCOMMONS_TINY_V01_IMGC
+#DEFINES += INCLUDE_MODEL_MLCOMMONS_TINY_V01_KWS
+#DEFINES += INCLUDE_MODEL_MLCOMMONS_TINY_V01_VWW
 
 # Uncomment to include all TFLM examples (pdti8, micro_speech, magic_wand)
 #DEFINES += INCLUDE_ALL_TFLM_EXAMPLES
 
 # Uncomment this line to include the ASCII animated donut demo.
 DEFINES += DONUT_DEMO
-
-# Show CSR Counters
-export EXTRA_LITEX_ARGS="--cpu-variant=perf+cfu" "--sys-clk-freq=50e6"
-
-# Target Digilent Arty
-export TARGET=digilent_arty
-
-# Ignore Timing Warnings
-#export IGNORE_TIMING=1
-
-# Use Vivado Toolchain
-export USE_VIVADO=1
-
-# Number of Threads for Building
-export BUILD_JOBS=16
 
 include ../proj.mk
