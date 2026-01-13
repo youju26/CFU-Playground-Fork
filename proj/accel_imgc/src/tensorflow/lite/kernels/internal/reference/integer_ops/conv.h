@@ -21,6 +21,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/portable_tensor_utils.h"
 #include "playground_util/print_params.h"
 #include "perf.h"
+#include "imgc_cfu.h"
 
 #ifdef SHOW_CONV_PERF
 #define PERF_START(n) perf_enable_counter(n)
@@ -71,6 +72,8 @@ inline void ConvPerChannel(
   if (bias_data) {
     TFLITE_DCHECK_EQ(bias_shape.FlatSize(), output_depth);
   }
+  
+  CFU_MAC_SET_OFFSET(input_offset);
 
   // Check dimensions of the tensors.
   const int input_height = input_shape.Dims(1);
@@ -87,7 +90,7 @@ inline void ConvPerChannel(
       for (int out_x = 0; out_x < output_width; ++out_x) {
         const int in_x_origin = (out_x * stride_width) - pad_width;
         for (int out_channel = 0; out_channel < output_depth; ++out_channel) {
-          int32_t acc = 0;
+          CFU_MAC_CLEAR();
           for (int filter_y = 0; filter_y < filter_height; ++filter_y) {
             const int in_y = in_y_origin + filter_y;
             for (int filter_x = 0; filter_x < filter_width; ++filter_x) {
@@ -102,33 +105,16 @@ inline void ConvPerChannel(
                 continue;
               }
 
-              for (int in_channel = 0; in_channel < filter_input_depth;
-                   ++in_channel) {
-                int32_t input_val =
-                    input_data[Offset(input_shape, batch, in_y, in_x,
-                                      in_channel)];
-                int32_t filter_val = filter_data[Offset(
-                    filter_shape, out_channel, filter_y, filter_x, in_channel)];
-                // Accumulate with 32 bits accumulator.
-                // In the nudging process during model quantization, we force
-                // real value of 0.0 be represented by a quantized value. This
-                // guarantees that the input_offset is a int8_t, even though
-                // it is represented using int32_t. int32_t += int8_t *
-                // (int8_t - int8_t) so the highest value we can get from each
-                // accumulation is [-127, 127] * ([-128, 127] -
-                // [-128, 127]), which is [-32512, 32512]. log2(32512)
-                // = 14.98, which means we can accumulate at least 2^16
-                // multiplications without overflow. The accumulator is
-                // applied to a filter so the accumulation logic will hold as
-                // long as the filter size (filter_y * filter_x * in_channel)
-                // does not exceed 2^16, which is the case in all the models
-                // we have seen so far.
-                // TODO(b/174275578): Add a check to make sure the
-                // accumulator depth is smaller than 2^16.
-                acc += filter_val * (input_val + input_offset);
+              for (int in_channel = 0; in_channel < filter_input_depth; ++in_channel) {
+                int32_t input_val = input_data[Offset(input_shape, batch, in_y, in_x, in_channel)];
+                int32_t filter_val = filter_data[Offset(filter_shape, out_channel, filter_y, filter_x, in_channel)];
+                
+                CFU_MAC_ACC(filter_val, input_val);
               }
             }
           }
+
+          int32_t acc = CFU_MAC_ACC(0, 0);
 
           if (bias_data) {
             acc += bias_data[out_channel];
