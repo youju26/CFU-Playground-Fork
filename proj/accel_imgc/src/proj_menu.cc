@@ -20,6 +20,7 @@
 
 #include "cfu.h"
 #include "menu.h"
+#include "imgc_cfu.h"
 
 namespace {
 
@@ -27,48 +28,110 @@ namespace {
 
 void do_hello_world(void) { puts("Hello, World!!!\n"); }
 
-// Test template instruction
-void do_grid_cfu_op0(void) {
-  puts("\nExercise CFU Op0\n");
-  printf("a   b-->");
-  for (int b = 0; b < 6; b++) {
-    printf("%8d", b);
-  }
-  puts("\n-------------------------------------------------------");
-  for (int a = 0; a < 6; a++) {
-    printf("%-8d", a);
-    for (int b = 0; b < 6; b++) {
-      int cfu = cfu_op0(0, a, b);
-      printf("%8d", cfu);
-    }
-    puts("");
-  }
-}
+void do_test_alu(void) {
+  puts("\n=== ALU test ===\n");
 
-// Test template instruction
-void do_exercise_cfu_op0(void) {
-  puts("\nExercise CFU Op0\n");
-  int count = 0;
-  for (int a = -0x71234567; a < 0x68000000; a += 0x10012345) {
-    for (int b = -0x7edcba98; b < 0x68000000; b += 0x10770077) {
-      int cfu = cfu_op0(0, a, b);
-      printf("a: %08x b:%08x cfu=%08x\n", a, b, cfu);
-      if (cfu != a) {
-        printf("\n***FAIL\n");
+  for (int a = -3; a <= 3; a++) {
+    for (int b = -3; b <= 3; b++) {
+      int add = CFU_ALU_ADD(a, b);
+      int sub = CFU_ALU_SUB(a, b);
+      int mul = CFU_ALU_MUL(a, b);
+
+      if (add != a + b || sub != a - b || mul != a * b) {
+        printf("*** ALU FAIL a=%d b=%d\n", a, b);
         return;
       }
-      count++;
     }
   }
-  printf("Performed %d comparisons", count);
+
+  puts("ALU TESTS OK");
+}
+
+static bool check_mac(const char* name, int got, int expected) {
+  printf("%s: got=%d expected=%d\n", name, got, expected);
+  if (got != expected) {
+    puts("*** FAIL");
+    return false;
+  }
+  return true;
+}
+
+void do_test_mac(void) {
+  puts("\n=== MAC test suite ===\n");
+
+  // ------------------------------------------------------------
+  // Test 1: simple
+  // ------------------------------------------------------------
+  puts("[1] simple MAC");
+
+  CFU_MAC_CLEAR();
+  CFU_MAC_SET_OFFSET(0);
+
+  {
+    uint32_t a = 0x01010101;
+    uint32_t b = 0x02020202;
+    int mac_res = CFU_MAC_ACC(a, b);
+    if (!check_mac("simple", mac_res, 8)) return;
+  }
+
+  // ------------------------------------------------------------
+  // Test 2: accumulate + offset
+  // ------------------------------------------------------------
+  puts("\n[2] accumulate + offset");
+
+  CFU_MAC_CLEAR();
+  CFU_MAC_SET_OFFSET(1);
+
+  {
+    uint32_t a = 0x01010101;
+    uint32_t b = 0x01010101;
+
+    int r1 = CFU_MAC_ACC(a, b);
+    int r2 = CFU_MAC_ACC(a, b);
+
+    if (!check_mac("acc 1", r1, 8)) return;
+    if (!check_mac("acc 2", r2, 16)) return;
+  }
+
+  // ------------------------------------------------------------
+  // Test 3: negative values
+  // ------------------------------------------------------------
+  puts("\n[3] negative values");
+
+  CFU_MAC_CLEAR();
+  CFU_MAC_SET_OFFSET(0);
+
+  {
+    uint32_t a = 0xFCFDFEFF;  // [-1,-2,-3,-4]
+    uint32_t b = 0x04030201;  // [ 1, 2, 3, 4]
+    int mac_res = CFU_MAC_ACC(a, b);
+    if (!check_mac("negative", mac_res, -30)) return;
+  }
+
+  // ------------------------------------------------------------
+  // Test 4: negative offset
+  // ------------------------------------------------------------
+  puts("\n[4] negative offset");
+
+  CFU_MAC_CLEAR();
+  CFU_MAC_SET_OFFSET(-1);
+
+  {
+    uint32_t a = 0x01010101;
+    uint32_t b = 0x01010101;
+    int mac_res = CFU_MAC_ACC(a, b);
+    if (!check_mac("neg offset", mac_res, 0)) return;
+  }
+
+  puts("\nMAC TESTS OK");
 }
 
 struct Menu MENU = {
     "Project Menu",
     "project",
     {
-        MENU_ITEM('0', "exercise cfu op0", do_exercise_cfu_op0),
-        MENU_ITEM('g', "grid cfu op0", do_grid_cfu_op0),
+        MENU_ITEM('0', "run ALU tests", do_test_alu),
+        MENU_ITEM('1', "run MAC tests", do_test_mac),
         MENU_ITEM('h', "say Hello", do_hello_world),
         MENU_END,
     },

@@ -48,7 +48,7 @@ DEFINES += DONUT_DEMO
 DEFINES += ACCELERATE_CONV
 
 # Show CSR Counters
-export EXTRA_LITEX_ARGS="--cpu-variant=perf+cfu"
+export EXTRA_LITEX_ARGS="--cpu-variant=perf+cfu" "--sys-clk-freq=50e6"
 
 # Target Digilent Arty
 export TARGET = digilent_arty
