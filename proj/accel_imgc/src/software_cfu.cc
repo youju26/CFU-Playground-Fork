@@ -26,25 +26,16 @@ static int32_t reg_acc    = 0;
 static inline int32_t mac(uint32_t a, uint32_t b) {
   int32_t sum = 0;
 
-  sum += (int32_t)a * ((int32_t)b + reg_offset);
-
-  return sum;
-}
-
-// MAC4
-/*static inline int32_t mac(uint32_t a, uint32_t b) {
-  int32_t sum = 0;
-
   for (int i = 0; i < 4; i++) {
-    int8_t ai = (int8_t)(a & 0xFF);
-    int8_t bi = (int8_t)(b & 0xFF);
+    int32_t ai = (int8_t)(a & 0xFF);   // sign-extend 8->32
+    int32_t bi = (int8_t)(b & 0xFF);
     sum += ai * (bi + reg_offset);
     a >>= 8;
     b >>= 8;
   }
 
   return sum;
-}*/
+}
 
 static uint32_t alu_op(int funct7, uint32_t in0, uint32_t in1) {
   switch (funct7) {
