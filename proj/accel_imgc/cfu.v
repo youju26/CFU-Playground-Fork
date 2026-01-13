@@ -60,7 +60,7 @@ module Cfu (
     .acc(acc)
   );
 
-  // <--- Datapath --->
+  // <--- MAC --->
   wire signed [31:0] mac_sum;
 
   cfu_mac u_mac(
