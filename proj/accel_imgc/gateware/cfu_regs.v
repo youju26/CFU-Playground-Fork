@@ -20,8 +20,10 @@ module cfu_regs (
       
       if (flag_clear_acc) begin
         acc <= 0;
+        //$display("REGS: flag_clear_acc=1, acc <= 0");
       end else if (flag_add_acc) begin
         acc <= acc + input_value;
+        //$display("REGS: flag_add_acc=1, acc <= %0d + %0d = %0d", acc, input_value, acc + input_value);
       end
     end
   end 

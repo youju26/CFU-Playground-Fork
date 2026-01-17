@@ -14,6 +14,6 @@ module cfu_mac (
 
   assign sum = prod_0 + prod_1 + prod_2 + prod_3;
 
-  // TODO Combat Timing issues with pipelining
+  // Works not at 100 MHz, critical path too long
     
 endmodule

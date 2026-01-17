@@ -1,19 +1,4 @@
-// Copyright 2021 The CFU-Playground Authors
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 `include "gateware/cfu_types.vh"
-`include "gateware/cfu_decode.v"
 `include "gateware/cfu_regs.v"
 `include "gateware/cfu_mac.v"
 
@@ -29,16 +14,6 @@ module Cfu (
   input               reset,
   input               clk
 );
-
-  // <--- Decode --->
-  wire [2:0] op;
-  wire [6:0] subop;
-
-  cfu_decode u_decode (
-    .function_id(cmd_payload_function_id),
-    .op(op),
-    .subop(subop)
-  );
 
   // <--- Register File --->
   wire signed [31:0] offset;
@@ -95,9 +70,9 @@ module Cfu (
       flag_add_acc <= 1'b0;
       flag_clear_acc <= 1'b0;
 
-      case (op)
+      case (cmd_payload_function_id[2:0])
         `ALU: begin
-          case (subop)
+          case (cmd_payload_function_id[9:3])
             `ALU_ADD: rsp_payload_outputs_0 <= cmd_payload_inputs_0 + cmd_payload_inputs_1;
             `ALU_SUB: rsp_payload_outputs_0 <= cmd_payload_inputs_0 - cmd_payload_inputs_1;
             `ALU_MUL: rsp_payload_outputs_0 <= cmd_payload_inputs_0 * cmd_payload_inputs_1;
@@ -106,7 +81,7 @@ module Cfu (
           end
 
         `MAC: begin
-          case (subop)
+          case (cmd_payload_function_id[9:3])
             `MAC_ACC: begin
               // Acc + MAC_Sum
               flag_add_acc <= 1'b1;
@@ -115,7 +90,7 @@ module Cfu (
             end
             `MAC_CLEAR: begin
               flag_clear_acc <= 1'b1;
-              rsp_payload_outputs_0 <= acc; 
+              rsp_payload_outputs_0 <= 32'd0; 
             end
             `MAC_SET_OFF: begin
               flag_write_offset <= 1'b1;
