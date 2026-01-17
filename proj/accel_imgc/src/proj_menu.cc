@@ -47,83 +47,75 @@ void do_test_alu(void) {
   puts("ALU TESTS OK");
 }
 
-static bool check_mac(const char* name, int got, int expected) {
-  printf("%s: got=%d expected=%d\n", name, got, expected);
-  if (got != expected) {
-    puts("*** FAIL");
-    return false;
-  }
-  return true;
+static int8_t lane(uint32_t x, int i) {
+  return (int8_t)((x >> (8 * i)) & 0xFF);
+}
+
+static void print_lanes(const char* name, uint32_t x) {
+  printf("%s=[%4d %4d %4d %4d] (0x%08lx)",
+         name,
+         (int)lane(x, 0), (int)lane(x, 1), (int)lane(x, 2), (int)lane(x, 3),
+         (unsigned long)x);
+}
+
+static bool run_mac_case(const char* name,
+                         int32_t offset,
+                         uint32_t a, uint32_t b,
+                         int expected) {
+  CFU_MAC_CLEAR();
+  CFU_MAC_SET_OFFSET(offset);
+
+  int got = CFU_MAC_ACC(a, b);
+
+  printf("%-14s off=%4ld | ", name, (long)offset);
+  print_lanes("a", a);
+  printf("  ");
+  print_lanes("b", b);
+  printf("  => got=%4d exp=%4d %s\n",
+         got, expected, (got == expected) ? "OK" : "FAIL");
+
+  return got == expected;
+}
+
+static bool run_mac_acc2_case(const char* name,
+                              int32_t offset,
+                              uint32_t a, uint32_t b,
+                              int exp1, int exp2) {
+  CFU_MAC_CLEAR();
+  CFU_MAC_SET_OFFSET(offset);
+
+  int r1 = CFU_MAC_ACC(a, b);
+  int r2 = CFU_MAC_ACC(a, b);
+
+  printf("%-14s off=%4ld | ", name, (long)offset);
+  print_lanes("a", a);
+  printf("  ");
+  print_lanes("b", b);
+  printf("  => r1=%4d exp=%4d  r2=%4d exp=%4d %s\n",
+         r1, exp1, r2, exp2, (r1 == exp1 && r2 == exp2) ? "OK" : "FAIL");
+
+  return (r1 == exp1 && r2 == exp2);
 }
 
 void do_test_mac(void) {
-  puts("\n=== MAC test suite ===\n");
+  puts("\n=== MAC tests (quick view) ===\n");
+  puts("name           offset | a lanes               b lanes               => result\n");
+  puts("-----------------------------------------------------------------------------------------");
 
-  // ------------------------------------------------------------
-  // Test 1: simple
-  // ------------------------------------------------------------
-  puts("[1] simple MAC");
+  // [1] simple
+  if (!run_mac_case("simple", 0, 0x01010101, 0x02020202, 8)) return;
 
-  CFU_MAC_CLEAR();
-  CFU_MAC_SET_OFFSET(0);
+  // [2] accumulate + offset (two calls)
+  if (!run_mac_acc2_case("acc+offset", 1, 0x01010101, 0x01010101, 8, 16)) return;
 
-  {
-    uint32_t a = 0x01010101;
-    uint32_t b = 0x02020202;
-    int mac_res = CFU_MAC_ACC(a, b);
-    if (!check_mac("simple", mac_res, 8)) return;
-  }
+  // [3] negative values
+  if (!run_mac_case("negative", 0, 0xFCFDFEFF, 0x04030201, -30)) return;
 
-  // ------------------------------------------------------------
-  // Test 2: accumulate + offset
-  // ------------------------------------------------------------
-  puts("\n[2] accumulate + offset");
+  // [4] negative offset
+  if (!run_mac_case("neg offset", -1, 0x01010101, 0x01010101, 0)) return;
 
-  CFU_MAC_CLEAR();
-  CFU_MAC_SET_OFFSET(1);
-
-  {
-    uint32_t a = 0x01010101;
-    uint32_t b = 0x01010101;
-
-    int r1 = CFU_MAC_ACC(a, b);
-    int r2 = CFU_MAC_ACC(a, b);
-
-    if (!check_mac("acc 1", r1, 8)) return;
-    if (!check_mac("acc 2", r2, 16)) return;
-  }
-
-  // ------------------------------------------------------------
-  // Test 3: negative values
-  // ------------------------------------------------------------
-  puts("\n[3] negative values");
-
-  CFU_MAC_CLEAR();
-  CFU_MAC_SET_OFFSET(0);
-
-  {
-    uint32_t a = 0xFCFDFEFF;  // [-1,-2,-3,-4]
-    uint32_t b = 0x04030201;  // [ 1, 2, 3, 4]
-    int mac_res = CFU_MAC_ACC(a, b);
-    if (!check_mac("negative", mac_res, -30)) return;
-  }
-
-  // ------------------------------------------------------------
-  // Test 4: negative offset
-  // ------------------------------------------------------------
-  puts("\n[4] negative offset");
-
-  CFU_MAC_CLEAR();
-  CFU_MAC_SET_OFFSET(-1);
-
-  {
-    uint32_t a = 0x01010101;
-    uint32_t b = 0x01010101;
-    int mac_res = CFU_MAC_ACC(a, b);
-    if (!check_mac("neg offset", mac_res, 0)) return;
-  }
-
-  puts("\nMAC TESTS OK");
+  puts("-----------------------------------------------------------------------------------------");
+  puts("MAC TESTS OK");
 }
 
 struct Menu MENU = {

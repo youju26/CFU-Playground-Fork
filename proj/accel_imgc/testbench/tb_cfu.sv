@@ -39,6 +39,7 @@ module tb_cfu;
     cmd_payload_inputs_0 = input_0;
     cmd_payload_inputs_1 = input_1;
     cmd_valid = 1'b1;
+    rsp_ready = 1'b0;
 
     // Wait for response to be valid
     while (!rsp_valid) #10;
@@ -52,6 +53,10 @@ module tb_cfu;
     
     // Keep cmd_valid and rsp_ready stable until rsp_valid goes low
     while (rsp_valid) #10;
+    
+    // Clean up
+    cmd_valid = 1'b0;
+    rsp_ready = 1'b0;
   endtask
 
   initial begin
