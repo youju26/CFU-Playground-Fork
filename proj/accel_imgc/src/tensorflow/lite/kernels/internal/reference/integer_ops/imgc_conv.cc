@@ -87,6 +87,38 @@ void CFUConvPerChannel(
       const int in_y_origin = (out_y * stride_height) - pad_height;
       for (int out_x = 0; out_x < output_width; ++out_x) {
         const int in_x_origin = (out_x * stride_width) - pad_width;
+
+        // Load input_vals into FiFo buffer
+        CFU_MAC_CLEAR_INPUT_VALS(); // Clear input vals from last iteration
+        for (int filter_y = 0; filter_y < filter_height; ++filter_y) {
+            const int in_y = in_y_origin + filter_y;
+            for (int filter_x = 0; filter_x < filter_width; ++filter_x) {
+              const int in_x = in_x_origin + filter_x;
+
+              // Zero padding by omitting the areas outside the image.
+              const bool is_point_inside_image =
+                  (in_x >= 0) && (in_x < input_width) && (in_y >= 0) &&
+                  (in_y < input_height);
+
+              if (!is_point_inside_image) {
+                continue;
+              }
+              // Loop unrolling and filling FiFo
+              for (int in_channel = 0; in_channel < filter_input_depth; in_channel += 16) {
+                // Offset: ((i0 * dims_data[1] + i1) * dims_data[2] + i2) * dims_data[3] + i3
+                uint32_t input_val = *((uint32_t *)(input_data + Offset(input_shape, batch, in_y, in_x, in_channel)));
+                CFU_MAC_SET_INPUT_VALS(input_val);          
+                input_val = *((uint32_t *)(input_data + Offset(input_shape, batch, in_y, in_x, in_channel + 4)));               
+                CFU_MAC_SET_INPUT_VALS(input_val);
+                input_val = *((uint32_t *)(input_data + Offset(input_shape, batch, in_y, in_x, in_channel + 8)));
+                CFU_MAC_SET_INPUT_VALS(input_val);
+                input_val = *((uint32_t *)(input_data + Offset(input_shape, batch, in_y, in_x, in_channel + 12)));
+                CFU_MAC_SET_INPUT_VALS(input_val);     
+              }
+            }
+        }
+  
+
         for (int out_channel = 0; out_channel < output_depth; ++out_channel) {
           CFU_MAC_CLEAR();
           for (int filter_y = 0; filter_y < filter_height; ++filter_y) {
@@ -105,26 +137,15 @@ void CFUConvPerChannel(
 
               // Loop unrolling and MAC4
               for (int in_channel = 0; in_channel < filter_input_depth; in_channel += 16) {
-                uint32_t input_val = *((uint32_t *)(input_data + Offset(input_shape, batch, in_y, in_x, in_channel)));
+                // Offset: ((i0 * dims_data[1] + i1) * dims_data[2] + i2) * dims_data[3] + i3
                 uint32_t filter_val = *((uint32_t *)(filter_data + Offset(filter_shape, out_channel, filter_y, filter_x, in_channel)));
-                
-                CFU_MAC_ACC(filter_val, input_val);
-
-                input_val = *((uint32_t *)(input_data + Offset(input_shape, batch, in_y, in_x, in_channel + 4)));
+                CFU_MAC_ON_BUFFER(filter_val);
                 filter_val = *((uint32_t *)(filter_data + Offset(filter_shape, out_channel, filter_y, filter_x, in_channel + 4)));
-
-                CFU_MAC_ACC(filter_val, input_val);
-
-                input_val = *((uint32_t *)(input_data + Offset(input_shape, batch, in_y, in_x, in_channel + 8)));
+                CFU_MAC_ON_BUFFER(filter_val);
                 filter_val = *((uint32_t *)(filter_data + Offset(filter_shape, out_channel, filter_y, filter_x, in_channel + 8)));
-
-                CFU_MAC_ACC(filter_val, input_val);
-
-                input_val = *((uint32_t *)(input_data + Offset(input_shape, batch, in_y, in_x, in_channel + 12)));
+                CFU_MAC_ON_BUFFER(filter_val);
                 filter_val = *((uint32_t *)(filter_data + Offset(filter_shape, out_channel, filter_y, filter_x, in_channel + 12)));
-
-                CFU_MAC_ACC(filter_val, input_val);
-
+                CFU_MAC_ON_BUFFER(filter_val);
               }
             }
           }
