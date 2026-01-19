@@ -16,6 +16,9 @@ extern "C" {
 #define CFU_MAC_ACC(in0, in1) cfu_op0(0, in0, in1)
 #define CFU_MAC_CLEAR() cfu_op0(1, 0, 0)
 #define CFU_MAC_SET_OFFSET(in0) cfu_op0(2, in0, 0)
+#define CFU_MAC_SET_INPUT_VALS(in0) cfu_op0(3, in0, 0)  // Load input_vals into CFU FiFo buffer
+#define CFU_MAC_ON_BUFFER(in0) cfu_op0(4, in0, 0)   // Apply filter_vals on the input_vals, which are saved in the CFU input_val FiFo
+#define CFU_MAC_CLEAR_INPUT_VALS() cfu_op0(5, 0, 0) // Clear the input_val FiFo
 
 #ifdef __cplusplus
 }
