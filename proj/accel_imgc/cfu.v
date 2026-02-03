@@ -153,9 +153,6 @@ module Cfu (
               flag_buffer_clear <= 1'b1;
               rsp_payload_outputs_0 <= 32'd0;
             end
-            `DEBUG_FILLER: begin
-              rsp_payload_outputs_0 <= 32'd42;
-            end
             default: rsp_payload_outputs_0 <= 32'b0;
           endcase
         end
