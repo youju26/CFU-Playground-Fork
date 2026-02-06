@@ -106,14 +106,12 @@ void CFUConvPerChannel(
               // Loop unrolling and filling FiFo
               for (int in_channel = 0; in_channel < filter_input_depth; in_channel += 16) {
                 // Offset: ((i0 * dims_data[1] + i1) * dims_data[2] + i2) * dims_data[3] + i3
-                uint32_t input_val = *((uint32_t *)(input_data + Offset(input_shape, batch, in_y, in_x, in_channel)));
-                CFU_MAC_SET_INPUT_VALS(input_val);          
-                input_val = *((uint32_t *)(input_data + Offset(input_shape, batch, in_y, in_x, in_channel + 4)));               
-                CFU_MAC_SET_INPUT_VALS(input_val);
-                input_val = *((uint32_t *)(input_data + Offset(input_shape, batch, in_y, in_x, in_channel + 8)));
-                CFU_MAC_SET_INPUT_VALS(input_val);
-                input_val = *((uint32_t *)(input_data + Offset(input_shape, batch, in_y, in_x, in_channel + 12)));
-                CFU_MAC_SET_INPUT_VALS(input_val);     
+                uint32_t input_val_1 = *((uint32_t *)(input_data + Offset(input_shape, batch, in_y, in_x, in_channel)));         
+                uint32_t input_val_2 = *((uint32_t *)(input_data + Offset(input_shape, batch, in_y, in_x, in_channel + 4)));               
+                CFU_MAC_SET_INPUT_VALS(input_val_1, input_val_2);
+                input_val_1 = *((uint32_t *)(input_data + Offset(input_shape, batch, in_y, in_x, in_channel + 8)));
+                input_val_2 = *((uint32_t *)(input_data + Offset(input_shape, batch, in_y, in_x, in_channel + 12)));
+                CFU_MAC_SET_INPUT_VALS(input_val_1, input_val_2);    
               }
             }
         }
@@ -138,14 +136,12 @@ void CFUConvPerChannel(
               // Loop unrolling and MAC4
               for (int in_channel = 0; in_channel < filter_input_depth; in_channel += 16) {
                 // Offset: ((i0 * dims_data[1] + i1) * dims_data[2] + i2) * dims_data[3] + i3
-                uint32_t filter_val = *((uint32_t *)(filter_data + Offset(filter_shape, out_channel, filter_y, filter_x, in_channel)));
-                CFU_MAC_ON_BUFFER(filter_val);
-                filter_val = *((uint32_t *)(filter_data + Offset(filter_shape, out_channel, filter_y, filter_x, in_channel + 4)));
-                CFU_MAC_ON_BUFFER(filter_val);
-                filter_val = *((uint32_t *)(filter_data + Offset(filter_shape, out_channel, filter_y, filter_x, in_channel + 8)));
-                CFU_MAC_ON_BUFFER(filter_val);
-                filter_val = *((uint32_t *)(filter_data + Offset(filter_shape, out_channel, filter_y, filter_x, in_channel + 12)));
-                CFU_MAC_ON_BUFFER(filter_val);
+                uint32_t filter_val_1 = *((uint32_t *)(filter_data + Offset(filter_shape, out_channel, filter_y, filter_x, in_channel)));
+                uint32_t filter_val_2 = *((uint32_t *)(filter_data + Offset(filter_shape, out_channel, filter_y, filter_x, in_channel + 4)));
+                CFU_MAC_ON_BUFFER(filter_val_1, filter_val_2);
+                filter_val_1 = *((uint32_t *)(filter_data + Offset(filter_shape, out_channel, filter_y, filter_x, in_channel + 8)));
+                filter_val_2 = *((uint32_t *)(filter_data + Offset(filter_shape, out_channel, filter_y, filter_x, in_channel + 12)));
+                CFU_MAC_ON_BUFFER(filter_val_1, filter_val_2);
               }
             }
           }

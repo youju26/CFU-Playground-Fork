@@ -86,6 +86,11 @@ static uint32_t mac_op(int funct7, uint32_t in0, uint32_t in1) {
         buffer_tail = (buffer_tail + 1) % BUFFER_SIZE;
         buffer_count++;
       }
+      if (buffer_count < BUFFER_SIZE) {
+        buffer_input_data[buffer_tail] = in1;
+        buffer_tail = (buffer_tail + 1) % BUFFER_SIZE;
+        buffer_count++;
+      }
       return 0;
     }
 
@@ -95,6 +100,20 @@ static uint32_t mac_op(int funct7, uint32_t in0, uint32_t in1) {
       if (buffer_count > 0) {
         uint32_t input_val = buffer_input_data[buffer_head];
         int32_t v = mac(in0, input_val);
+        
+        // Move to next position
+        buffer_head = (buffer_head + 1) % BUFFER_SIZE;
+        
+        // Re-append the value at the tail
+        // Count stays the same (removed from front, added to back)
+        buffer_input_data[buffer_tail] = input_val;
+        buffer_tail = (buffer_tail + 1) % BUFFER_SIZE;
+        
+        reg_acc += v;
+      }
+      if (buffer_count > 0) {
+        uint32_t input_val = buffer_input_data[buffer_head];
+        int32_t v = mac(in1, input_val);
         
         // Move to next position
         buffer_head = (buffer_head + 1) % BUFFER_SIZE;
