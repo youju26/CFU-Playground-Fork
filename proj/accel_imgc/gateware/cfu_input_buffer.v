@@ -1,5 +1,5 @@
 module cfu_input_buffer #(
-    parameter integer DEPTH  = 256,
+    parameter integer DEPTH  = 128,
     parameter integer ADDR_W = 8
 ) (
     input  wire        clk,
