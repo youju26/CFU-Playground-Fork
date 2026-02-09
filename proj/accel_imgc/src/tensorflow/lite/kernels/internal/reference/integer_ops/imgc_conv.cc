@@ -146,7 +146,7 @@ void CFUConvPerChannel(
             }
           }
 
-          int32_t acc = CFU_MAC_ACC(0, 0);
+          /*int32_t acc = CFU_MAC_ACC(0, 0);
 
           if (bias_data) {
             acc += bias_data[out_channel];
@@ -157,7 +157,16 @@ void CFUConvPerChannel(
           acc = std::max(acc, output_activation_min);
           acc = std::min(acc, output_activation_max);
           output_data[Offset(output_shape, batch, out_y, out_x, out_channel)] =
-              static_cast<int8_t>(acc);
+              static_cast<int8_t>(acc);*/
+
+          bias_data ? CFU_QNT_SET_BIAS(bias_data[out_channel]) : CFU_QNT_SET_BIAS((int32_t) 0);
+          CFU_QNT_SET_MUL(output_multiplier[out_channel]);
+          CFU_QNT_SET_SHIFT(output_shift[out_channel]);
+          CFU_QNT_SET_OFFSET(output_offset);
+          CFU_QNT_SET_MIN(output_activation_min);
+          CFU_QNT_SET_MAX(output_activation_max);
+          output_data[Offset(output_shape, batch, out_y, out_x, out_channel)] = 
+              static_cast<int8_t>(CFU_QNT_GET());
         }
       }
     }

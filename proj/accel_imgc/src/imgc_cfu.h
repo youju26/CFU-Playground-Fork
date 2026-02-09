@@ -20,6 +20,15 @@ extern "C" {
 #define CFU_MAC_ON_BUFFER(in0, in1) cfu_op0(4, in0, in1)   // Apply filter_vals on the input_vals, which are saved in the CFU input_val FiFo
 #define CFU_MAC_CLEAR_INPUT_VALS() cfu_op0(5, 0, 0) // Clear the input_val FiFo
 
+// <--- QNT ---> (Quantization)
+#define CFU_QNT_SET_BIAS(in0) cfu_op1(0, in0, 0)
+#define CFU_QNT_SET_MUL(in0) cfu_op1(1, in0, 0)
+#define CFU_QNT_SET_SHIFT(in0) cfu_op1(2, in0, 0)
+#define CFU_QNT_SET_OFFSET(in0) cfu_op1(3, in0, 0)
+#define CFU_QNT_SET_MIN(in0) cfu_op1(4, in0, 0)
+#define CFU_QNT_SET_MAX(in0) cfu_op1(5, in0, 0)
+#define CFU_QNT_GET() cfu_op1(6, 0, 0)
+
 #ifdef __cplusplus
 }
 #endif
