@@ -18,9 +18,21 @@
 #include "software_cfu.h"
 #include "imgc_cfu.h"
 
-// registers
+#include "tensorflow/lite/kernels/internal/common.h" // TODO remove later
+
+// <--- registers --->
+
+// MAC
 static int32_t reg_offset = 0;
 static int32_t reg_acc    = 0;
+
+// QNT
+static int32_t reg_qnt_bias = 0;
+static int32_t reg_qnt_mul = 0;
+static int32_t reg_qnt_shift = 0;
+static int32_t reg_qnt_offset = 0;
+static int32_t reg_qnt_min = 0;
+static int32_t reg_qnt_max = 0;
 
 // Simple ring buffer (input buffer) - fixed size, no dynamic allocation
 #define BUFFER_SIZE 256
@@ -138,6 +150,54 @@ static uint32_t mac_op(int funct7, uint32_t in0, uint32_t in1) {
   }
 }
 
+static uint32_t qnt_op(int funct7, uint32_t in0, uint32_t in1) {
+  switch (funct7) {
+    case 0:  // SET_BIAS
+      reg_qnt_bias = (int32_t)in0;
+      return 0;
+    case 1:  // SET_MUL
+      reg_qnt_mul = (int32_t)in0;
+      return 0;
+    case 2:  // SET_SHIFT
+      reg_qnt_shift = (int32_t)in0;
+      return 0;
+    case 3: // SET_OFFSET
+      reg_qnt_offset = (int32_t)in0;
+      return 0;
+    case 4: // SET_MIN
+      reg_qnt_min = (int32_t)in0;
+      return 0;
+    case 5: // SET_MAX
+      reg_qnt_max = (int32_t)in0;
+      return 0;
+    case 6: { // GET
+      int32_t acc = reg_acc + reg_qnt_bias;
+
+      acc = tflite::MultiplyByQuantizedMultiplier(acc, reg_qnt_mul, reg_qnt_shift);
+      /*int64_t prod = (int64_t)acc * (int64_t)reg_qnt_mul;
+      int total_shift = 31 - reg_qnt_shift;
+      if (total_shift > 0) {
+        int64_t rounding = (int64_t)1 << (total_shift - 1);
+        prod += (prod >= 0) ? rounding : -rounding;
+        prod >>= total_shift;
+      }
+      acc = (int32_t)prod;*/
+
+      // TODO Fix 
+      /*
+      Look at what exactly was done in MultiplyByQuantizedMultiplier and underlying methods
+      */
+
+      acc += reg_qnt_offset;
+      acc = std::max(acc, reg_qnt_min);
+      acc = std::min(acc, reg_qnt_max);
+      return acc;
+    }
+    default:
+      return 0;
+  }
+}
+
 //
 // In this function, place C code to emulate your CFU. You can switch between
 // hardware and emulated CFU by setting the CFU_SOFTWARE_DEFINED DEFINE in
@@ -147,6 +207,9 @@ uint32_t software_cfu(int funct3, int funct7, uint32_t in0, uint32_t in1)
   switch (funct3) {
     case 0:  // MAC
       return mac_op(funct7, in0, in1);
+
+    case 1: // QNT (Quantization)
+      return qnt_op(funct7, in0, in1);
 
     case 7:  // ALU (test)
       return alu_op(funct7, in0, in1);
