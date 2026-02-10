@@ -18,8 +18,6 @@
 #include "software_cfu.h"
 #include "imgc_cfu.h"
 
-#include "tensorflow/lite/kernels/internal/common.h" // TODO remove later
-
 // <--- registers --->
 
 // MAC
@@ -61,6 +59,60 @@ static inline int32_t mac(uint32_t a, uint32_t b) {
   }
 
   return sum;
+}
+
+static inline int32_t quantize() {
+  // Post-Processing of Conv-Acc (int32)
+  // Goal: q_out = clamp( Z_out + round( acc * (S_in*S_w / S_out) ), act_min, act_max )
+
+  int32_t acc = reg_acc + reg_qnt_bias;
+
+  // The following code implements tflite::MultiplyByQuantizedMultiplier(acc, reg_qnt_mul, reg_qnt_shift)
+  // Theory: acc_scaled ~ round( acc * effective_scale )
+  // with effective_scale ~ (M / 2^31) * 2^shift
+
+  // left and right shift
+  // shift > 0 => multiply by 2^shift before the Q31 multiply (left_shift)
+  // shift <= 0 => divide by 2^{-shift} after the Q31 multiply (right_shift)
+  int left_shift = reg_qnt_shift > 0 ? reg_qnt_shift : 0;
+  int right_shift = reg_qnt_shift > 0 ? 0 : -reg_qnt_shift;
+  int32_t shifted = acc * (1 << left_shift);
+
+  // Implementation of gemmlowp::SaturatingRoundingDoublingHighMul(shifted, reg_qnt_mul)
+  // fixedpoint.h lines 327-339
+  // Theory: scaled ~ round( (shifted * M) / 2^31 )
+  // M is Q31: M ~ effective_scale * 2^31
+  int32_t scaled;
+  if (shifted == INT32_MIN && reg_qnt_mul == INT32_MIN) {
+    // Overflow case: -1 * -1 should saturate to max
+    scaled = INT32_MAX;
+  } else {
+    int64_t ab_64 = (int64_t)shifted * (int64_t)reg_qnt_mul;
+    // Theory: rounding-to-nearest for division with 2^31
+    int32_t nudge = ab_64 >= 0 ? (1 << 30) : (1 - (1 << 30));
+    // Theory: scaled = round( ab_64 / 2^31 )
+    scaled = (int32_t)((ab_64 + nudge) / (1ll << 31));
+  }
+
+  // Implementation of gemmlowp::RoundingDivideByPOT(scaled, right_shift)
+  // fixedpoint.h lines 357-368
+  // Theory: If shift was negative, division with 2^{right_shift}:
+  // scaled = round( scaled / 2^{right_shift} )
+  if (right_shift > 0) {
+    int32_t mask = (1 << right_shift) - 1;
+    int32_t remainder = scaled & mask;
+    int32_t threshold = (mask >> 1) + (scaled < 0 ? 1 : 0);
+    scaled = (scaled >> right_shift) + (remainder > threshold ? 1 : 0);
+  }
+
+  acc = scaled;
+
+  // <-- End of MultiplyByQuantizedMultiplier
+
+  acc += reg_qnt_offset;
+  acc = (acc < reg_qnt_min) ? reg_qnt_min : acc;
+  acc = (acc > reg_qnt_max) ? reg_qnt_max : acc;
+  return acc;
 }
 
 static uint32_t alu_op(int funct7, uint32_t in0, uint32_t in1) {
@@ -170,29 +222,8 @@ static uint32_t qnt_op(int funct7, uint32_t in0, uint32_t in1) {
     case 5: // SET_MAX
       reg_qnt_max = (int32_t)in0;
       return 0;
-    case 6: { // GET
-      int32_t acc = reg_acc + reg_qnt_bias;
-
-      acc = tflite::MultiplyByQuantizedMultiplier(acc, reg_qnt_mul, reg_qnt_shift);
-      /*int64_t prod = (int64_t)acc * (int64_t)reg_qnt_mul;
-      int total_shift = 31 - reg_qnt_shift;
-      if (total_shift > 0) {
-        int64_t rounding = (int64_t)1 << (total_shift - 1);
-        prod += (prod >= 0) ? rounding : -rounding;
-        prod >>= total_shift;
-      }
-      acc = (int32_t)prod;*/
-
-      // TODO Fix 
-      /*
-      Look at what exactly was done in MultiplyByQuantizedMultiplier and underlying methods
-      */
-
-      acc += reg_qnt_offset;
-      acc = std::max(acc, reg_qnt_min);
-      acc = std::min(acc, reg_qnt_max);
-      return acc;
-    }
+    case 6: // GET
+      return quantize();
     default:
       return 0;
   }
