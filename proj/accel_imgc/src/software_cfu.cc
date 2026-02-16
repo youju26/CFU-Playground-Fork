@@ -63,7 +63,7 @@ static inline int32_t mac(uint32_t a, uint32_t b) {
 
 static inline int32_t quantize() {
   // Post-Processing of Conv-Acc (int32)
-  // Goal: q_out = clamp( Z_out + round( acc * (S_in*S_w / S_out) ), act_min, act_max )
+  // Goal: q_out = clamp( round( (acc + bias) * effective_scale ) + output_offset )
 
   int32_t acc = reg_acc + reg_qnt_bias;
 
