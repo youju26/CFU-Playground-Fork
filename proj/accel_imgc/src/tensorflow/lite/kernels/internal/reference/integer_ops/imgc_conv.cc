@@ -72,8 +72,7 @@ void CFUConvPerChannel(
   CFU_MAC_SET_OFFSET(input_offset);
   // Load Quantization parameters into CFU
   CFU_QNT_SET_OFFSET(output_offset);
-  CFU_QNT_SET_MIN(output_activation_min);
-  CFU_QNT_SET_MAX(output_activation_max);
+  CFU_QNT_SET_MIN_AND_MAX(output_activation_min, output_activation_max);
 
   // Check dimensions of the tensors.
   const int input_height = input_shape.Dims(1);
@@ -151,8 +150,8 @@ void CFUConvPerChannel(
           }
 
           bias_data ? CFU_QNT_SET_BIAS(bias_data[out_channel]) : CFU_QNT_SET_BIAS((int32_t) 0);
-          CFU_QNT_SET_MUL(output_multiplier[out_channel]);
-          CFU_QNT_SET_SHIFT(output_shift[out_channel]);
+          CFU_QNT_SET_MUL_AND_SHIFT(output_multiplier[out_channel], output_shift[out_channel]);
+          cfu_op1(5, 0, 0);
           output_data[Offset(output_shape, batch, out_y, out_x, out_channel)] = 
               static_cast<int8_t>(CFU_QNT_GET());
         }

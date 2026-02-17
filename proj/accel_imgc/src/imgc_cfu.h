@@ -22,12 +22,10 @@ extern "C" {
 
 // <--- QNT ---> (Quantization)
 #define CFU_QNT_SET_BIAS(in0) cfu_op1(0, in0, 0)
-#define CFU_QNT_SET_MUL(in0) cfu_op1(1, in0, 0)
-#define CFU_QNT_SET_SHIFT(in0) cfu_op1(2, in0, 0)
-#define CFU_QNT_SET_OFFSET(in0) cfu_op1(3, in0, 0)
-#define CFU_QNT_SET_MIN(in0) cfu_op1(4, in0, 0)
-#define CFU_QNT_SET_MAX(in0) cfu_op1(5, in0, 0)
-#define CFU_QNT_GET() cfu_op1(6, 0, 0)
+#define CFU_QNT_SET_MUL_AND_SHIFT(in0, in1) cfu_op1(1, in0, in1)
+#define CFU_QNT_SET_OFFSET(in0) cfu_op1(2, in0, 0)
+#define CFU_QNT_SET_MIN_AND_MAX(in0, in1) cfu_op1(3, in0, in1)
+#define CFU_QNT_GET() cfu_op1(4, 0, 0)
 
 #ifdef __cplusplus
 }

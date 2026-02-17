@@ -2,6 +2,7 @@
 `include "gateware/cfu_regs.v"
 `include "gateware/cfu_mac.v"
 `include "gateware/cfu_input_buffer.v"
+`include "gateware/cfu_quantizer.v"
 
 module Cfu (
   input               cmd_valid,
@@ -120,6 +121,30 @@ module Cfu (
     .sum(mac2_sum_b)
   );
 
+  // <--- Quantizer --->
+  reg signed [31:0] qnt_bias;
+  reg signed [31:0] qnt_mul;
+  reg signed [5:0] qnt_shift;
+  reg signed [31:0] qnt_offset;
+  reg signed [31:0] qnt_min;
+  reg signed [31:0] qnt_max;
+  wire signed [31:0] qnt_out;
+  reg [1:0] control;
+
+  cfu_quantizer u_quantizer(
+    .clk(clk),
+    .rst(reset),
+    .data_in(acc),
+    .bias(qnt_bias),
+    .mul(qnt_mul),
+    .shift(qnt_shift),
+    .offset(qnt_offset),
+    .min(qnt_min),
+    .max(qnt_max),
+    .data_out(qnt_out),
+    .control(control)
+  );
+
   // <--- Control --->
   assign cmd_ready = ~rsp_valid; // Ready to receive new command if no pending output
 
@@ -134,10 +159,19 @@ module Cfu (
     flag_buffer_clear_b <= 1'b0;
     flag_buffer_write_en_b <= 1'b0;
     flag_buffer_read_en_b <= 1'b0;
+    control <= 2'b00;
 
     if (reset) begin
       rsp_valid <= 1'b0; // Output not valid
       rsp_payload_outputs_0 <= 32'b0;
+      // Initialize QNT registers
+      qnt_bias <= 32'sd0;
+      qnt_mul <= 32'sd0;
+      qnt_shift <= 6'sd0;
+      qnt_offset <= 32'sd0;
+      qnt_min <= 32'sd0;
+      qnt_max <= 32'sd0;
+      control <= 2'b00;
     end else if (rsp_valid) begin
       // Check if CPU accepted response, if yes, pull down rsp_valid and implicitly set cmd_ready to 1
       rsp_valid <= ~rsp_ready; 
@@ -198,6 +232,38 @@ module Cfu (
               flag_buffer_clear <= 1'b1;
               flag_buffer_clear_b <= 1'b1;
               rsp_payload_outputs_0 <= 32'd0;
+            end
+            default: rsp_payload_outputs_0 <= 32'b0;
+          endcase
+        end
+
+        `QNT: begin
+          case (cmd_payload_function_id[9:3])
+            `SET_BIAS: begin
+              qnt_bias <= cmd_payload_inputs_0;
+              rsp_payload_outputs_0 <= 32'd0;
+            end
+            `SET_MUL_AND_SHIFT: begin
+              qnt_mul <= cmd_payload_inputs_0;
+              qnt_shift <= cmd_payload_inputs_1;
+              rsp_payload_outputs_0 <= 32'd0;
+            end
+            `SET_OFFSET: begin
+              qnt_offset <= cmd_payload_inputs_0;
+              rsp_payload_outputs_0 <= 32'd0;
+            end
+            `SET_MIN_AND_MAX: begin
+              qnt_min <= cmd_payload_inputs_0;
+              qnt_max <= cmd_payload_inputs_1;
+              rsp_payload_outputs_0 <= 32'd0;
+            end
+            `GET: begin
+              rsp_payload_outputs_0 <= qnt_out;
+              control <= 2'b00;
+            end
+            `STAGE_1: begin
+              control <= 2'b01;
+              rsp_payload_outputs_0 <= 32'b0;
             end
             default: rsp_payload_outputs_0 <= 32'b0;
           endcase
