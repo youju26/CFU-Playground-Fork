@@ -41,6 +41,7 @@ DEFINES += DONUT_DEMO
 
 # Profiling options
 #DEFINES += SHOW_MEMORY_USE
+DEFINES += SHOW_CONV_PARAMS
 
 # Show CSR Counters
 export EXTRA_LITEX_ARGS="--cpu-variant=perf+cfu"
