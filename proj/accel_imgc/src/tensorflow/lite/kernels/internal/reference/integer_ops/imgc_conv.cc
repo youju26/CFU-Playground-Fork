@@ -151,7 +151,6 @@ void CFUConvPerChannel(
 
           bias_data ? CFU_QNT_SET_BIAS(bias_data[out_channel]) : CFU_QNT_SET_BIAS((int32_t) 0);
           CFU_QNT_SET_MUL_AND_SHIFT(output_multiplier[out_channel], output_shift[out_channel]);
-          cfu_op1(5, 0, 0);
           output_data[Offset(output_shape, batch, out_y, out_x, out_channel)] = 
               static_cast<int8_t>(CFU_QNT_GET());
         }

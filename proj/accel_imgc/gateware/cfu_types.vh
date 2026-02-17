@@ -32,4 +32,3 @@
 `define SET_OFFSET  7'd2
 `define SET_MIN_AND_MAX     7'd3
 `define GET         7'd4
-`define STAGE_1     7'd5

@@ -9,12 +9,14 @@ module cfu_quantizer (
     input signed [31:0] max,
     output signed [31:0] data_out,
 
-    // Staging Test
-    input [1:0] control
+    // Staging
+    input start,
+    output reg status
 );
     // Regs
     reg signed [63:0] reg_ab_64;
     reg signed [31:0] reg_scaled_pre;
+    reg stage;
 
     // Step 1: acc = data_in + bias
     wire signed [31:0] acc = data_in + bias;
@@ -22,11 +24,9 @@ module cfu_quantizer (
     // Step 2: Calculate shift
     wire [5:0] left_shift = (shift > 0) ? shift : 6'h0;
     wire [5:0] right_shift = (shift > 0) ? 6'h0 : (-shift);
-    
-    // Step 3: shifted = acc * 2^left_shift
     wire signed [31:0] shifted = acc << left_shift;
 
-    // Step 4: SaturatingRoundingDoublingHighMul
+    // Step 3: SaturatingRoundingDoublingHighMul
     wire signed [63:0] ab_64 = $signed(shifted) * $signed(mul);  // 64 bit sign-extend
     
     wire signed [63:0] nudge;
@@ -46,7 +46,7 @@ module cfu_quantizer (
     wire mul_overflow = (shifted == 32'sh80000000) && (mul == 32'sh80000000); // Handle overflow
     wire signed [31:0] scaled_pre = mul_overflow ? 32'sh7fffffff : scaled_raw;
 
-    // Step 5: Rounding Division by power of 2
+    // Step 4: Rounding Division by power of 2
     wire signed [31:0] scaled;
     wire [31:0] mask = ((32'd1 << right_shift) - 1);
     wire [31:0] remainder = reg_scaled_pre & mask;
@@ -55,23 +55,31 @@ module cfu_quantizer (
     assign scaled = (right_shift == 0) ? reg_scaled_pre : 
                     ((reg_scaled_pre >>> right_shift) + (remainder > threshold ? 1 : 0));
 
-    // Step 6: Offset and clamping
+    // Step 5: Offset and clamping
     wire signed [31:0] with_offset = scaled + offset;
     
     assign data_out = (with_offset < min) ? min :
                       (with_offset > max) ? max :
                       with_offset;
 
+    // Separate execution into 2 cycles (critical path)
     always @(posedge clk) begin
+        status <= 1'd0;
         if (rst) begin
             reg_ab_64 <= 64'sd0;
             reg_scaled_pre <= 32'sd0;
+            stage <= 1'b0;
         end else begin
-            case (control)
-                2'd0: reg_ab_64 <= ab_64;
-                2'd1: reg_scaled_pre <= scaled_pre;
-                default: ;
-            endcase
+            if (!stage) begin
+                if (start) begin
+                    reg_ab_64 <= ab_64;
+                    stage <= 1'b1;
+                end
+            end else begin
+                reg_scaled_pre <= scaled_pre;
+                status <= 1'd1;
+                stage <= 1'b0;
+            end
         end
     end
 

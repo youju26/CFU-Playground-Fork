@@ -129,7 +129,9 @@ module Cfu (
   reg signed [31:0] qnt_min;
   reg signed [31:0] qnt_max;
   wire signed [31:0] qnt_out;
-  reg [1:0] control;
+  wire qnt_status;
+  reg flag_qnt_start;
+  reg flag_qnt_pending;
 
   cfu_quantizer u_quantizer(
     .clk(clk),
@@ -142,11 +144,12 @@ module Cfu (
     .min(qnt_min),
     .max(qnt_max),
     .data_out(qnt_out),
-    .control(control)
+    .start(flag_qnt_start),
+    .status(qnt_status)
   );
 
   // <--- Control --->
-  assign cmd_ready = ~rsp_valid; // Ready to receive new command if no pending output
+  assign cmd_ready = ~rsp_valid && ~flag_qnt_pending; // Block new commands while quantizer result is pending
 
   always @(posedge clk) begin
     // Default: No register write
@@ -159,7 +162,7 @@ module Cfu (
     flag_buffer_clear_b <= 1'b0;
     flag_buffer_write_en_b <= 1'b0;
     flag_buffer_read_en_b <= 1'b0;
-    control <= 2'b00;
+    flag_qnt_start <= 1'b0;
 
     if (reset) begin
       rsp_valid <= 1'b0; // Output not valid
@@ -171,10 +174,19 @@ module Cfu (
       qnt_offset <= 32'sd0;
       qnt_min <= 32'sd0;
       qnt_max <= 32'sd0;
-      control <= 2'b00;
+      flag_qnt_pending <= 1'b0;
     end else if (rsp_valid) begin
       // Check if CPU accepted response, if yes, pull down rsp_valid and implicitly set cmd_ready to 1
       rsp_valid <= ~rsp_ready; 
+
+    // Handle multi cycle operations
+    end else if (flag_qnt_pending) begin
+      if (qnt_status) begin
+        rsp_payload_outputs_0 <= qnt_out;
+        rsp_valid <= 1'b1;
+        flag_qnt_pending <= 1'b0;
+      end
+
     end else if (cmd_valid) begin
       rsp_valid <= 1'b1;
 
@@ -258,12 +270,9 @@ module Cfu (
               rsp_payload_outputs_0 <= 32'd0;
             end
             `GET: begin
-              rsp_payload_outputs_0 <= qnt_out;
-              control <= 2'b00;
-            end
-            `STAGE_1: begin
-              control <= 2'b01;
-              rsp_payload_outputs_0 <= 32'b0;
+              flag_qnt_start <= 1'b1;
+              flag_qnt_pending <= 1'b1;
+              rsp_valid <= 1'b0;
             end
             default: rsp_payload_outputs_0 <= 32'b0;
           endcase

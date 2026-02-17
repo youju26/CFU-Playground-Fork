@@ -12,7 +12,8 @@ module tb_cfu_quantizer_hardcoded;
   logic signed [31:0] offset;
   logic signed [31:0] minv;
   logic signed [31:0] maxv;
-  logic [1:0] control;
+  logic start;
+  wire status;
   wire signed [31:0] data_out;
 
   // Instantiate DUT
@@ -27,7 +28,8 @@ module tb_cfu_quantizer_hardcoded;
     .min(minv),
     .max(maxv),
     .data_out(data_out),
-    .control(control)
+    .start(start),
+    .status(status)
   );
 
   // Clock generation
@@ -53,9 +55,11 @@ module tb_cfu_quantizer_hardcoded;
       minv    = t_min;
       maxv    = t_max;
 
-      // Extern controlled stages 0 -> 1
-      @(negedge clk); control = 2'd0; @(posedge clk);
-      @(negedge clk); control = 2'd1; @(posedge clk);
+      // Start internal two-step quantizer sequence
+      @(negedge clk); start = 1'b1;
+      @(posedge clk);
+      @(negedge clk); start = 1'b0;
+      wait (status == 1'b1);
       #1;
 
       if (data_out !== t_expected) begin
@@ -77,7 +81,7 @@ module tb_cfu_quantizer_hardcoded;
 
   initial begin
     rst = 1'b1;
-    control = 3'd0;
+    start = 1'b0;
     data_in = 32'd0;
     bias = 32'd0;
     mul = 32'd0;
