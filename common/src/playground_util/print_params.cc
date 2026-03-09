@@ -174,6 +174,39 @@ void print_arithmetic_params(const char* op_name,
   printf("\n");
 }
 
+// Format is:
+// "input_offset", "weights_offset", "output_offset", "output_multiplier",
+// "output_shift", "quantized_activation_min", "quantized_activation_max",
+// "batches", "output_depth", "accum_depth"
+void print_fully_connected_params(
+    const tflite::FullyConnectedParams& params,
+    const tflite::RuntimeShape& input_shape,
+    const tflite::RuntimeShape& filter_shape,
+    const tflite::RuntimeShape& output_shape) {
+  const int filter_dim_count = filter_shape.DimensionsCount();
+  const int output_dim_count = output_shape.DimensionsCount();
+  int batches = 1;
+  for (int i = 0; i < output_dim_count; ++i) {
+    if (i != output_dim_count - 1) {
+      batches *= output_shape.Dims(i);
+    }
+  }
+  const int output_depth = output_shape.Dims(output_dim_count - 1);
+  const int accum_depth = filter_shape.Dims(filter_dim_count - 1);
+
+  printf("%ld, ", params.input_offset);
+  printf("%ld, ", params.weights_offset);
+  printf("%ld, ", params.output_offset);
+  printf("%ld, ", params.output_multiplier);
+  printf("%d, ", params.output_shift);
+  printf("%ld, ", params.quantized_activation_min);
+  printf("%ld, ", params.quantized_activation_max);
+  printf("%d, ", batches);
+  printf("%d, ", output_depth);
+  printf("%d, ", accum_depth);
+  printf("\n");
+}
+
 void print_int32_array(const int32_t* data, size_t count) {
   // Print 8 numbers per line
   for (size_t i = 0; i < count; i++) {

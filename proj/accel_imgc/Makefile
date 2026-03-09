@@ -17,7 +17,7 @@
 export DEFINES :=
 
 # Uncomment this line to use software defined CFU functions in software_cfu.cc
-DEFINES += CFU_SOFTWARE_DEFINED
+#DEFINES += CFU_SOFTWARE_DEFINED
 
 # Uncomment this line to skip debug code (large effect on performance)
 DEFINES += NDEBUG
@@ -26,7 +26,7 @@ DEFINES += NDEBUG
 #DEFINES += NPROFILE
 
 # Uncomment to include specified model in built binary
-DEFINES += INCLUDE_MODEL_PDTI8
+#DEFINES += INCLUDE_MODEL_PDTI8
 #DEFINES += INCLUDE_MODEL_MICRO_SPEECH
 #DEFINES += INCLUDE_MODEL_MAGIC_WAND
 #DEFINES += INCLUDE_MODEL_MNV2
@@ -41,7 +41,7 @@ DEFINES += DONUT_DEMO
 
 # Profiling options
 #DEFINES += SHOW_MEMORY_USE
-#DEFINES += SHOW_CONV_PARAMS
+DEFINES += SHOW_CONV_PARAMS
 #DEFINES += SHOW_CONV_PERF #Adds a few cycles of overhead
 
 # Activate acceleration

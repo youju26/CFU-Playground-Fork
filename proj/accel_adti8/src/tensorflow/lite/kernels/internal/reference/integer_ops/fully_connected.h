@@ -16,19 +16,12 @@ limitations under the License.
 #define TENSORFLOW_LITE_KERNELS_INTERNAL_REFERENCE_INTEGER_OPS_FULLY_CONNECTED_H_
 
 #include <algorithm>
+#include <cstdio>
 
 #include "tensorflow/lite/kernels/internal/common.h"
 #include "tensorflow/lite/kernels/internal/portable_tensor_utils.h"
-#include "playground_util/print_params.h"
 #include "perf.h"
-
-#ifdef SHOW_CONV_PERF
-#define PERF_START(n) perf_enable_counter(n)
-#define PERF_END(n) perf_disable_counter(n)
-#else
-#define PERF_START(n)
-#define PERF_END(n)
-#endif
+#include "playground_util/print_params.h"
 
 namespace tflite {
 namespace reference_integer_ops {
@@ -121,13 +114,15 @@ inline void FullyConnectedPerChannel(
   }
 }
 
+// Anomaly Detection uses this function
 inline void FullyConnected(
     const FullyConnectedParams& params, const RuntimeShape& input_shape,
     const int8_t* input_data, const RuntimeShape& filter_shape,
     const int8_t* filter_data, const RuntimeShape& bias_shape,
     const int32_t* bias_data, const RuntimeShape& output_shape,
     int8_t* output_data) {
-  PERF_START(0);
+  //print_fully_connected_params(params, input_shape, filter_shape, output_shape);
+
   const int32_t input_offset = params.input_offset;
   const int32_t filter_offset = params.weights_offset;
   const int32_t output_offset = params.output_offset;
@@ -163,7 +158,6 @@ inline void FullyConnected(
       output_data[out_c + output_depth * b] = static_cast<int8_t>(acc);
     }
   }
-  PERF_END(0);
 }
 
 inline void FullyConnectedWithPackedInt4Weights(
