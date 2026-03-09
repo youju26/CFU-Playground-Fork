@@ -207,6 +207,7 @@ static uint32_t qnt_op(int funct7, uint32_t in0, uint32_t in1) {
     case 0:  // SET_BIAS
       reg_qnt_bias = (int32_t)in0;
       return 0;
+<<<<<<< HEAD
     case 1:  // SET_MUL_AND_SHIFT
       reg_qnt_mul = (int32_t)in0;
       reg_qnt_shift = (int32_t)in1;
@@ -219,6 +220,24 @@ static uint32_t qnt_op(int funct7, uint32_t in0, uint32_t in1) {
       reg_qnt_max = (int32_t)in1;
       return 0;
     case 4: // GET
+=======
+    case 1:  // SET_MUL
+      reg_qnt_mul = (int32_t)in0;
+      return 0;
+    case 2:  // SET_SHIFT
+      reg_qnt_shift = (int32_t)in0;
+      return 0;
+    case 3: // SET_OFFSET
+      reg_qnt_offset = (int32_t)in0;
+      return 0;
+    case 4: // SET_MIN
+      reg_qnt_min = (int32_t)in0;
+      return 0;
+    case 5: // SET_MAX
+      reg_qnt_max = (int32_t)in0;
+      return 0;
+    case 6: // GET
+>>>>>>> feat/accel_adti8
       return quantize();
     default:
       return 0;

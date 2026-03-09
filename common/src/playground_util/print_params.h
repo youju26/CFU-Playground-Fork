@@ -22,6 +22,12 @@ void print_conv_params(const tflite::ConvParams& params,
                        const tflite::RuntimeShape& filter_shape,
                        const tflite::RuntimeShape& output_shape);
 
+void print_fully_connected_params(
+                      const tflite::FullyConnectedParams& params,
+                      const tflite::RuntimeShape& input_shape,
+                      const tflite::RuntimeShape& filter_shape,
+                      const tflite::RuntimeShape& output_shape);                     
+
 void print_depthwise_params(const tflite::DepthwiseParams& params,
                             const tflite::RuntimeShape& input_shape,
                             const tflite::RuntimeShape& filter_shape,

@@ -121,6 +121,7 @@ module Cfu (
     .sum(mac2_sum_b)
   );
 
+<<<<<<< HEAD
   // <--- Quantizer --->
   reg signed [31:0] qnt_bias;
   reg signed [31:0] qnt_mul;
@@ -145,6 +146,8 @@ module Cfu (
     .control(control)
   );
 
+=======
+>>>>>>> feat/accel_adti8
   // <--- Control --->
   assign cmd_ready = ~rsp_valid; // Ready to receive new command if no pending output
 
@@ -159,11 +162,15 @@ module Cfu (
     flag_buffer_clear_b <= 1'b0;
     flag_buffer_write_en_b <= 1'b0;
     flag_buffer_read_en_b <= 1'b0;
+<<<<<<< HEAD
     control <= 2'b00;
+=======
+>>>>>>> feat/accel_adti8
 
     if (reset) begin
       rsp_valid <= 1'b0; // Output not valid
       rsp_payload_outputs_0 <= 32'b0;
+<<<<<<< HEAD
       // Initialize QNT registers
       qnt_bias <= 32'sd0;
       qnt_mul <= 32'sd0;
@@ -172,6 +179,8 @@ module Cfu (
       qnt_min <= 32'sd0;
       qnt_max <= 32'sd0;
       control <= 2'b00;
+=======
+>>>>>>> feat/accel_adti8
     end else if (rsp_valid) begin
       // Check if CPU accepted response, if yes, pull down rsp_valid and implicitly set cmd_ready to 1
       rsp_valid <= ~rsp_ready; 
@@ -236,6 +245,7 @@ module Cfu (
             default: rsp_payload_outputs_0 <= 32'b0;
           endcase
         end
+<<<<<<< HEAD
 
         `QNT: begin
           case (cmd_payload_function_id[9:3])
@@ -268,6 +278,8 @@ module Cfu (
             default: rsp_payload_outputs_0 <= 32'b0;
           endcase
         end
+=======
+>>>>>>> feat/accel_adti8
       endcase
     end
   end
