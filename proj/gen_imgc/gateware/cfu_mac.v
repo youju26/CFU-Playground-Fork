@@ -1,0 +1,16 @@
+module cfu_mac (
+    input         [31:0] a,
+    input         [31:0] b,
+    input signed  [8:0] offset,
+    output signed [15:0] prod_0,
+    output signed [15:0] prod_1,
+    output signed [15:0] prod_2,
+    output signed [15:0] prod_3
+);
+  
+  assign prod_0 = ($signed(a[7 : 0]) * ($signed(b[7 : 0]) + offset));
+  assign prod_1 = ($signed(a[15: 8]) * ($signed(b[15: 8]) + offset));
+  assign prod_2 = ($signed(a[23:16]) * ($signed(b[23:16]) + offset));
+  assign prod_3 = ($signed(a[31:24]) * ($signed(b[31:24]) + offset));
+    
+endmodule
