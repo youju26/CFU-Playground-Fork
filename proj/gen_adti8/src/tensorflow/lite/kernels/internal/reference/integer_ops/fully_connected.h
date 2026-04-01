@@ -17,6 +17,7 @@ limitations under the License.
 
 #include <algorithm>
 
+#include "custom_cfu.h"
 #include "tensorflow/lite/kernels/internal/common.h"
 #include "tensorflow/lite/kernels/internal/portable_tensor_utils.h"
 
@@ -126,6 +127,8 @@ inline void FullyConnected(
   TFLITE_DCHECK_GE(filter_shape.DimensionsCount(), 2);
   TFLITE_DCHECK_GE(output_shape.DimensionsCount(), 1);
 
+  CFU_MAC_SET_OFFSET(input_offset);
+
   TFLITE_DCHECK_LE(output_activation_min, output_activation_max);
   const int filter_dim_count = filter_shape.DimensionsCount();
   const int output_dim_count = output_shape.DimensionsCount();
@@ -135,12 +138,15 @@ inline void FullyConnected(
   const int accum_depth = filter_shape.Dims(filter_dim_count - 1);
   for (int b = 0; b < batches; ++b) {
     for (int out_c = 0; out_c < output_depth; ++out_c) {
-      int32_t acc = 0;
-      for (int d = 0; d < accum_depth; ++d) {
-        int32_t input_val = input_data[b * accum_depth + d];
-        int32_t filter_val = filter_data[out_c * accum_depth + d];
-        acc += (filter_val) * (input_val + input_offset);
+      CFU_MAC_CLEAR();
+      for (int d = 0; d < accum_depth; d+= 4) {
+        uint32_t input_val = *((uint32_t*)(input_data + b * accum_depth + d));
+        uint32_t filter_val = *((uint32_t*)(filter_data + out_c * accum_depth + d));
+        CFU_MAC_ACC(filter_val, input_val);
       }
+
+      int32_t acc = CFU_MAC_GET();
+
       if (bias_data) {
         acc += bias_data[out_c];
       }
