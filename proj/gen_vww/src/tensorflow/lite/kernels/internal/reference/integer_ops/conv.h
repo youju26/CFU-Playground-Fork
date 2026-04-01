@@ -59,9 +59,7 @@ inline void ConvPerChannel(
   const int filter_height = filter_shape.Dims(1);
   const int filter_width = filter_shape.Dims(2);
   const int filter_input_depth = filter_shape.Dims(3);
-  const int groups = input_depth / filter_input_depth;
   TFLITE_DCHECK_EQ(input_depth % filter_input_depth, 0);
-  const int filters_per_group = output_depth / groups;
   const int output_height = output_shape.Dims(1);
   const int output_width = output_shape.Dims(2);
   for (int batch = 0; batch < batches; ++batch) {
@@ -70,7 +68,6 @@ inline void ConvPerChannel(
       for (int out_x = 0; out_x < output_width; ++out_x) {
         const int in_x_origin = (out_x * stride_width);
         for (int out_channel = 0; out_channel < output_depth; ++out_channel) {
-          auto group = out_channel / filters_per_group;
           int32_t acc = 0;
           for (int filter_y = 0; filter_y < filter_height; ++filter_y) {
             const int in_y = in_y_origin + filter_y;
@@ -90,7 +87,7 @@ inline void ConvPerChannel(
                    ++in_channel) {
                 int32_t input_val =
                     input_data[Offset(input_shape, batch, in_y, in_x,
-                                      in_channel + group * filter_input_depth)];
+                                      in_channel)];
                 int32_t filter_val = filter_data[Offset(
                     filter_shape, out_channel, filter_y, filter_x, in_channel)];
                 
