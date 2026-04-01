@@ -17,6 +17,7 @@ limitations under the License.
 
 #include <algorithm>
 
+#include "custom_cfu.h"
 #include "tensorflow/lite/kernels/internal/common.h"
 #include "tensorflow/lite/kernels/internal/portable_tensor_utils.h"
 
@@ -53,6 +54,8 @@ inline void ConvPerChannel(
     TFLITE_DCHECK_EQ(bias_shape.FlatSize(), output_depth);
   }
 
+  CFU_MAC_SET_OFFSET(input_offset);
+
   // Check dimensions of the tensors.
   const int input_height = input_shape.Dims(1);
   const int input_width = input_shape.Dims(2);
@@ -68,7 +71,7 @@ inline void ConvPerChannel(
       for (int out_x = 0; out_x < output_width; ++out_x) {
         const int in_x_origin = (out_x * stride_width);
         for (int out_channel = 0; out_channel < output_depth; ++out_channel) {
-          int32_t acc = 0;
+          CFU_MAC_CLEAR();
           for (int filter_y = 0; filter_y < filter_height; ++filter_y) {
             const int in_y = in_y_origin + filter_y;
             for (int filter_x = 0; filter_x < filter_width; ++filter_x) {
@@ -83,18 +86,31 @@ inline void ConvPerChannel(
                 continue;
               }
 
-              for (int in_channel = 0; in_channel < filter_input_depth;
-                   ++in_channel) {
-                int32_t input_val =
-                    input_data[Offset(input_shape, batch, in_y, in_x,
-                                      in_channel)];
-                int32_t filter_val = filter_data[Offset(
-                    filter_shape, out_channel, filter_y, filter_x, in_channel)];
-                
-                acc += filter_val * (input_val + input_offset);
+              int in_channel = 0;
+              for (; in_channel + 3 < filter_input_depth; in_channel += 4) {
+                uint32_t input_val = *((uint32_t*)(input_data + Offset(
+                    input_shape, batch, in_y, in_x, in_channel)));
+                uint32_t filter_val = *((uint32_t*)(filter_data + Offset(
+                    filter_shape, out_channel, filter_y, filter_x,
+                    in_channel)));
+
+                CFU_MAC_ACC(filter_val, input_val);
+              }
+
+              // Tail loop for channel counts not divisible by 4 (e.g. first RGB layer).
+              for (; in_channel < filter_input_depth; ++in_channel) {
+                uint32_t input_val = (uint8_t)input_data[Offset(
+                    input_shape, batch, in_y, in_x, in_channel)];
+                uint32_t filter_val = (uint8_t)filter_data[Offset(
+                    filter_shape, out_channel, filter_y, filter_x,
+                    in_channel)];
+
+                CFU_MAC_ACC(filter_val, input_val);
               }
             }
           }
+
+          int32_t acc = CFU_MAC_GET();
 
           if (bias_data) {
             acc += bias_data[out_channel];
