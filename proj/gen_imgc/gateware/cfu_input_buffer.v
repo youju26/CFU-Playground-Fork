@@ -54,10 +54,10 @@ module cfu_input_buffer #(
             wr_ptr <= {ADDR_W{1'b0}};
             cnt    <= {(ADDR_W+1){1'b0}};
             read_data <= 32'b0;
-            input_0_and_offset <= 8'b0;
-            input_1_and_offset <= 8'b0;
-            input_2_and_offset <= 8'b0;
-            input_3_and_offset <= 8'b0;
+            input_0_and_offset <= 9'b0;
+            input_1_and_offset <= 9'b0;
+            input_2_and_offset <= 9'b0;
+            input_3_and_offset <= 9'b0;
         end else begin
             // WRITE
             if (do_write) begin
