@@ -34,6 +34,8 @@ inline void ConvPerChannel(
     int8_t* output_data) {
   // Get parameters.
   const int32_t input_offset = params.input_offset;  // r = s(q - Z)
+  const uint8_t input_zero_point = static_cast<uint8_t>(-input_offset);
+  const uint32_t packed_input_zero_point = static_cast<uint32_t>(input_zero_point) * 0x01010101u;
   const int stride_width = params.stride_width;
   const int stride_height = params.stride_height;
   const int pad_width = params.padding_values.width;
@@ -86,6 +88,14 @@ inline void ConvPerChannel(
                   (in_y < input_height);
 
               if (!is_point_inside_image) {
+                int in_channel = 0;
+                for (; in_channel + 3 < filter_input_depth; in_channel += 4) {
+                  CFU_MAC_SET_INPUT_VALS(packed_input_zero_point);
+                }
+                for (; in_channel < filter_input_depth; ++in_channel) {
+                  CFU_MAC_SET_INPUT_VALS(
+                      static_cast<uint32_t>(input_zero_point));
+                }
                 continue;
               }
               
@@ -108,19 +118,7 @@ inline void ConvPerChannel(
         for (int out_channel = 0; out_channel < output_depth; ++out_channel) {
           CFU_MAC_CLEAR();
           for (int filter_y = 0; filter_y < filter_height; ++filter_y) {
-            const int in_y = in_y_origin + filter_y;
             for (int filter_x = 0; filter_x < filter_width; ++filter_x) {
-              const int in_x = in_x_origin + filter_x;
-
-              // Zero padding by omitting the areas outside the image.
-              const bool is_point_inside_image =
-                  (in_x >= 0) && (in_x < input_width) && (in_y >= 0) &&
-                  (in_y < input_height);
-
-              if (!is_point_inside_image) {
-                continue;
-              }
-
               int in_channel = 0;
               for (; in_channel + 3 < filter_input_depth; in_channel += 4) {
                 uint32_t filter_val = *((uint32_t*)(filter_data + Offset(
