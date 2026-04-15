@@ -90,11 +90,10 @@ inline void ConvPerChannel(
                 continue;
               }
               
-              for (int in_channel = 0; in_channel < filter_input_depth; in_channel += 8) {
-                uint32_t input_val_1 = *((uint32_t*)(input_data + Offset(
-                    input_shape, batch, in_y, in_x, in_channel)));
-                uint32_t input_val_2 = *((uint32_t*)(input_data + Offset(
-                    input_shape, batch, in_y, in_x, in_channel + 4)));
+              const int8_t* input_ptr = input_data + Offset(input_shape, batch, in_y, in_x, 0);
+              for (int in_channel = 0; in_channel < filter_input_depth; in_channel += 8, input_ptr += 8) {
+                uint32_t input_val_1 = *((const uint32_t*)(input_ptr));
+                uint32_t input_val_2 = *((const uint32_t*)(input_ptr + 4));
                 CFU_MAC_SET_INPUT_VALS(input_val_1, input_val_2);
               }
 
@@ -105,13 +104,11 @@ inline void ConvPerChannel(
           CFU_MAC_CLEAR();
           for (int filter_y = 0; filter_y < filter_height; ++filter_y) {
             for (int filter_x = 0; filter_x < filter_width; ++filter_x) {
-              for (int in_channel = 0; in_channel < filter_input_depth; in_channel += 8) {
-                uint32_t filter_val_1 = *((uint32_t*)(filter_data + Offset(
-                    filter_shape, out_channel, filter_y, filter_x,
-                    in_channel)));
-                uint32_t filter_val_2 = *((uint32_t*)(filter_data + Offset(
-                    filter_shape, out_channel, filter_y, filter_x,
-                    in_channel + 4)));
+              const int8_t* filter_ptr =
+                  filter_data + Offset(filter_shape, out_channel, filter_y, filter_x, 0);
+              for (int in_channel = 0; in_channel < filter_input_depth; in_channel += 8, filter_ptr += 8) {
+                uint32_t filter_val_1 = *((const uint32_t*)(filter_ptr));
+                uint32_t filter_val_2 = *((const uint32_t*)(filter_ptr + 4));
                 
                 CFU_MAC_ON_BUFFER(filter_val_1, filter_val_2);
               }
