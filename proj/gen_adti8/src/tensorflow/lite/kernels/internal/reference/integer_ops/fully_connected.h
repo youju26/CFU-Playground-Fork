@@ -137,12 +137,19 @@ inline void FullyConnected(
   TFLITE_DCHECK_LE(output_depth, filter_shape.Dims(filter_dim_count - 2));
   const int accum_depth = filter_shape.Dims(filter_dim_count - 1);
   for (int b = 0; b < batches; ++b) {
+
+    // Load input neurons into buffer
+    CFU_MAC_CLEAR_INPUT_VALS();
+    for (int d = 0; d < accum_depth; d+= 4) {
+      uint32_t input_val = *((uint32_t*)(input_data + b * accum_depth + d));
+      CFU_MAC_SET_INPUT_VALS(input_val);
+    }
+
     for (int out_c = 0; out_c < output_depth; ++out_c) {
       CFU_MAC_CLEAR();
       for (int d = 0; d < accum_depth; d+= 4) {
-        uint32_t input_val = *((uint32_t*)(input_data + b * accum_depth + d));
         uint32_t filter_val = *((uint32_t*)(filter_data + out_c * accum_depth + d));
-        CFU_MAC_ACC(filter_val, input_val);
+        CFU_MAC_ON_BUFFER(filter_val);
       }
 
       int32_t acc = CFU_MAC_GET();
