@@ -140,17 +140,19 @@ inline void FullyConnected(
 
     // Load input neurons into buffer
     CFU_MAC_CLEAR_INPUT_VALS();
-    for (int d = 0; d < accum_depth; d+= 8) {
-      uint32_t input_val_1 = *((uint32_t*)(input_data + b * accum_depth + d));
-      uint32_t input_val_2 = *((uint32_t*)(input_data + b * accum_depth + d + 4));
+    const int8_t* input_ptr = input_data + b * accum_depth;
+    for (int d = 0; d < accum_depth; d+= 8, input_ptr += 8) {
+      uint32_t input_val_1 = *((const uint32_t*)(input_ptr));
+      uint32_t input_val_2 = *((const uint32_t*)(input_ptr + 4));
       CFU_MAC_SET_INPUT_VALS(input_val_1, input_val_2);
     }
 
     for (int out_c = 0; out_c < output_depth; ++out_c) {
       CFU_MAC_CLEAR();
-      for (int d = 0; d < accum_depth; d+= 8) {
-        uint32_t filter_val_1 = *((uint32_t*)(filter_data + out_c * accum_depth + d));
-        uint32_t filter_val_2 = *((uint32_t*)(filter_data + out_c * accum_depth + d + 4));
+      const int8_t* filter_ptr = filter_data + out_c * accum_depth;
+      for (int d = 0; d < accum_depth; d+= 8, filter_ptr += 8) {
+        uint32_t filter_val_1 = *((const uint32_t*)(filter_ptr));
+        uint32_t filter_val_2 = *((const uint32_t*)(filter_ptr + 4));
         CFU_MAC_ON_BUFFER(filter_val_1, filter_val_2);
       }
 
