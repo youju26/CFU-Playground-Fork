@@ -51,6 +51,42 @@ module Cfu (
     .count(buffer_count)
   );
 
+  // <--- Buffer B for Input Vals --->
+  reg flag_buffer_clear_b;
+  reg flag_buffer_write_en_b;
+  reg flag_buffer_read_en_b;
+  
+  wire flag_buffer_read_valid_b;
+  wire [8:0] buffer_count_b;
+  wire buffer_write_full_b;
+  wire buffer_read_empty_b;
+
+  reg signed [31:0] buffer_write_data_b;
+  wire signed [31:0] buffer_read_data_b;
+  wire signed [8:0] input_0_and_offset_b;
+  wire signed [8:0] input_1_and_offset_b;
+  wire signed [8:0] input_2_and_offset_b;
+  wire signed [8:0] input_3_and_offset_b;
+
+  cfu_input_buffer u_input_buffer_b (
+    .clk(clk),
+    .rst(reset),
+    .clear(flag_buffer_clear_b),
+    .write_en(flag_buffer_write_en_b),
+    .write_data(buffer_write_data_b),
+    .write_full(buffer_write_full_b),
+    .read_en(flag_buffer_read_en_b),
+    .read_data(buffer_read_data_b),
+    .offset(mac_offset),
+    .input_0_and_offset(input_0_and_offset_b),
+    .input_1_and_offset(input_1_and_offset_b),
+    .input_2_and_offset(input_2_and_offset_b),
+    .input_3_and_offset(input_3_and_offset_b),
+    .read_data_valid(flag_buffer_read_valid_b),
+    .read_empty(buffer_read_empty_b),
+    .count(buffer_count_b)
+  );
+
   // <--- MAC --->
   wire signed [15:0] prod_0;
   wire signed [15:0] prod_1;
@@ -74,6 +110,28 @@ module Cfu (
     .prod_3(prod_3)
   );
 
+    // <--- MAC B--->
+  wire signed [15:0] prod_0_b;
+  wire signed [15:0] prod_1_b;
+  wire signed [15:0] prod_2_b;
+  wire signed [15:0] prod_3_b;
+  //reg signed [31:0] mac_acc_0;
+  //reg signed [31:0] mac_acc_1;
+  //reg signed [31:0] mac_acc_2;
+  //reg signed [31:0] mac_acc_3;
+
+  cfu_mac u_mac_buffer_b(
+    .a(cmd_payload_inputs_1),  // Weights
+    .input_0_and_offset(input_0_and_offset_b),
+    .input_1_and_offset(input_1_and_offset_b),
+    .input_2_and_offset(input_2_and_offset_b),
+    .input_3_and_offset(input_3_and_offset_b),
+    .prod_0(prod_0_b),
+    .prod_1(prod_1_b),
+    .prod_2(prod_2_b),
+    .prod_3(prod_3_b)
+  );
+
   // <--- Control --->
   assign cmd_ready = ~rsp_valid; // Ready to receive new command if no pending output
 
@@ -83,6 +141,9 @@ module Cfu (
     flag_buffer_clear <= 1'b0;
     flag_buffer_read_en <= 1'b0;
     flag_buffer_write_en <= 1'b0;
+    flag_buffer_clear_b <= 1'b0;
+    flag_buffer_read_en_b <= 1'b0;
+    flag_buffer_write_en_b <= 1'b0;
 
     if (reset) begin
       rsp_valid <= 1'b0; // Output not valid
@@ -120,21 +181,27 @@ module Cfu (
             end
             `MAC_SET_INPUT_VALS: begin
               buffer_write_data <= cmd_payload_inputs_0;
+              buffer_write_data_b <= cmd_payload_inputs_1;
               flag_buffer_write_en <= 1'b1;
+              flag_buffer_write_en_b <= 1'b1;
             end
             `MAC_ON_BUFFER: begin             
               flag_buffer_read_en <= 1'b1;
+              flag_buffer_read_en_b <= 1'b1;
               // Add MAC sum to each acc
-              mac_acc_0 <= mac_acc_0 + prod_0;
-              mac_acc_1 <= mac_acc_1 + prod_1;
-              mac_acc_2 <= mac_acc_2 + prod_2;
-              mac_acc_3 <= mac_acc_3 + prod_3;
+              mac_acc_0 <= mac_acc_0 + prod_0 + prod_0_b;
+              mac_acc_1 <= mac_acc_1 + prod_1 + prod_1_b;
+              mac_acc_2 <= mac_acc_2 + prod_2 + prod_2_b;
+              mac_acc_3 <= mac_acc_3 + prod_3 + prod_3_b;
               // Re-append the value to keep it in the buffer for multiple filter sets
               flag_buffer_write_en <= 1'b1;
               buffer_write_data <= buffer_read_data;
+              flag_buffer_write_en_b <= 1'b1;
+              buffer_write_data_b <= buffer_read_data_b;
             end
             `MAC_CLEAR_INPUT_VALS: begin
               flag_buffer_clear <= 1'b1;
+              flag_buffer_clear_b <= 1'b1;
             end
           endcase
         end

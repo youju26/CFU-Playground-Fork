@@ -84,16 +84,18 @@ inline void ConvPerChannel(
                   (in_y < input_height);
 
               if (!is_point_inside_image) {
-                for (int in_channel = 0; in_channel < filter_input_depth; in_channel += 4) {
-                  CFU_MAC_SET_INPUT_VALS(packed_input_zero_point);
+                for (int in_channel = 0; in_channel < filter_input_depth; in_channel += 8) {
+                  CFU_MAC_SET_INPUT_VALS(packed_input_zero_point, packed_input_zero_point);
                 }
                 continue;
               }
               
-              for (int in_channel = 0; in_channel < filter_input_depth; in_channel += 4) {
-                uint32_t input_val = *((uint32_t*)(input_data + Offset(
+              for (int in_channel = 0; in_channel < filter_input_depth; in_channel += 8) {
+                uint32_t input_val_1 = *((uint32_t*)(input_data + Offset(
                     input_shape, batch, in_y, in_x, in_channel)));
-                CFU_MAC_SET_INPUT_VALS(input_val);
+                uint32_t input_val_2 = *((uint32_t*)(input_data + Offset(
+                    input_shape, batch, in_y, in_x, in_channel + 4)));
+                CFU_MAC_SET_INPUT_VALS(input_val_1, input_val_2);
               }
 
             }
@@ -103,12 +105,15 @@ inline void ConvPerChannel(
           CFU_MAC_CLEAR();
           for (int filter_y = 0; filter_y < filter_height; ++filter_y) {
             for (int filter_x = 0; filter_x < filter_width; ++filter_x) {
-              for (int in_channel = 0; in_channel < filter_input_depth; in_channel += 4) {
-                uint32_t filter_val = *((uint32_t*)(filter_data + Offset(
+              for (int in_channel = 0; in_channel < filter_input_depth; in_channel += 8) {
+                uint32_t filter_val_1 = *((uint32_t*)(filter_data + Offset(
                     filter_shape, out_channel, filter_y, filter_x,
                     in_channel)));
+                uint32_t filter_val_2 = *((uint32_t*)(filter_data + Offset(
+                    filter_shape, out_channel, filter_y, filter_x,
+                    in_channel + 4)));
                 
-                CFU_MAC_ON_BUFFER(filter_val);
+                CFU_MAC_ON_BUFFER(filter_val_1, filter_val_2);
               }
             }
           }
