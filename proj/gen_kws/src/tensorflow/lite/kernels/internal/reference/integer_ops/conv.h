@@ -72,6 +72,39 @@ inline void ConvPerChannel(
       const int in_y_origin = (out_y * stride_height) - pad_height;
       for (int out_x = 0; out_x < output_width; ++out_x) {
         const int in_x_origin = (out_x * stride_width) - pad_width;
+
+        // Load input features into FiFo buffer
+        CFU_MAC_CLEAR_INPUT_VALS(); // Clear input features from last iteration
+        for (int filter_y = 0; filter_y < filter_height; ++filter_y) {
+            const int in_y = in_y_origin + filter_y;
+            for (int filter_x = 0; filter_x < filter_width; ++filter_x) {
+              const int in_x = in_x_origin + filter_x;
+
+              // Zero padding by omitting the areas outside the image.
+              const bool is_point_inside_image =
+                  (in_x >= 0) && (in_x < input_width) && (in_y >= 0) &&
+                  (in_y < input_height);
+
+              if (!is_point_inside_image) {
+                continue;
+              }
+              
+              int in_channel = 0;
+              for (; in_channel + 3 < filter_input_depth; in_channel += 4) {
+                uint32_t input_val = *((uint32_t*)(input_data + Offset(
+                    input_shape, batch, in_y, in_x, in_channel)));
+                CFU_MAC_SET_INPUT_VALS(input_val);
+              }
+
+              // Tail loop for channel counts not divisible by 4 (e.g. first RGB layer).
+              for (; in_channel < filter_input_depth; ++in_channel) {
+                uint32_t input_val = (uint8_t)input_data[Offset(
+                    input_shape, batch, in_y, in_x, in_channel)];
+                CFU_MAC_SET_INPUT_VALS(input_val);
+              }
+            }
+          }
+
         for (int out_channel = 0; out_channel < output_depth; ++out_channel) {
           CFU_MAC_CLEAR();
           for (int filter_y = 0; filter_y < filter_height; ++filter_y) {
@@ -90,24 +123,20 @@ inline void ConvPerChannel(
 
               int in_channel = 0;
               for (; in_channel + 3 < filter_input_depth; in_channel += 4) {
-                uint32_t input_val = *((uint32_t*)(input_data + Offset(
-                    input_shape, batch, in_y, in_x, in_channel)));
                 uint32_t filter_val = *((uint32_t*)(filter_data + Offset(
                     filter_shape, out_channel, filter_y, filter_x,
                     in_channel)));
 
-                CFU_MAC_ACC(filter_val, input_val);
+                CFU_MAC_ON_BUFFER(filter_val);
               }
 
               // Tail loop for channel counts not divisible by 4 (e.g. first RGB layer).
               for (; in_channel < filter_input_depth; ++in_channel) {
-                uint32_t input_val = (uint8_t)input_data[Offset(
-                    input_shape, batch, in_y, in_x, in_channel)];
                 uint32_t filter_val = (uint8_t)filter_data[Offset(
                     filter_shape, out_channel, filter_y, filter_x,
                     in_channel)];
 
-                CFU_MAC_ACC(filter_val, input_val);
+                CFU_MAC_ON_BUFFER(filter_val);
               }
             }
           }
