@@ -59,6 +59,8 @@ inline void ConvPerChannel(
   }
 
   CFU_MAC_SET_OFFSET(input_offset);
+  CFU_QNT_SET_OFFSET(output_offset);
+  CFU_QNT_SET_MIN_AND_MAX(output_activation_min, output_activation_max);
 
   // Check dimensions of the tensors.
   const int input_height = input_shape.Dims(1);
@@ -145,18 +147,11 @@ inline void ConvPerChannel(
             }
           }
 
-          int32_t acc = CFU_MAC_GET();
+          bias_data ? CFU_QNT_SET_BIAS(bias_data[out_channel]) : CFU_QNT_SET_BIAS((int32_t) 0);
+          CFU_QNT_SET_MUL_AND_SHIFT(output_multiplier[out_channel], output_shift[out_channel]);
+          output_data[Offset(output_shape, batch, out_y, out_x, out_channel)] = 
+              static_cast<int8_t>(CFU_QNT_GET());
 
-          if (bias_data) {
-            acc += bias_data[out_channel];
-          }
-          acc = MultiplyByQuantizedMultiplier(
-              acc, output_multiplier[out_channel], output_shift[out_channel]);
-          acc += output_offset;
-          acc = std::max(acc, output_activation_min);
-          acc = std::min(acc, output_activation_max);
-          output_data[Offset(output_shape, batch, out_y, out_x, out_channel)] =
-              static_cast<int8_t>(acc);
         }
       }
     }
