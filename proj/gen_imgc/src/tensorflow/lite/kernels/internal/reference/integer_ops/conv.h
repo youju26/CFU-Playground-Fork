@@ -69,6 +69,36 @@ inline void ConvPerChannel(
   TFLITE_DCHECK_EQ(input_depth % filter_input_depth, 0);
   const int output_height = output_shape.Dims(1);
   const int output_width = output_shape.Dims(2);
+
+  CFU_MAC_CLEAR_FILTER_VALS();
+
+  // For each filter set
+  for (int out_channel = 0; out_channel < output_depth; ++out_channel) {
+    for (int filter_y = 0; filter_y < filter_height; ++filter_y) {
+      for (int filter_x = 0; filter_x < filter_width; ++filter_x) {
+
+        int in_channel = 0;
+        for (; in_channel + 3 < filter_input_depth; in_channel += 4) {
+          uint32_t filter_val = *((uint32_t*)(filter_data + Offset(
+              filter_shape, out_channel, filter_y, filter_x,
+              in_channel)));
+
+          CFU_MAC_SET_FILTER_VALS(filter_val);
+        }
+
+        // Tail loop for channel counts not divisible by 4 (e.g. first RGB layer).
+        for (; in_channel < filter_input_depth; ++in_channel) {
+          uint32_t filter_val = (uint8_t)filter_data[Offset(
+              filter_shape, out_channel, filter_y, filter_x,
+              in_channel)];
+
+          CFU_MAC_SET_FILTER_VALS(filter_val);
+        }
+      }
+    }
+    CFU_MAC_NEXT_FILTER_SET();
+  }
+
   for (int batch = 0; batch < batches; ++batch) {
     for (int out_y = 0; out_y < output_height; ++out_y) {
       const int in_y_origin = (out_y * stride_height) - pad_height;
@@ -89,8 +119,8 @@ inline void ConvPerChannel(
 
               if (!is_point_inside_image) {
                 int in_channel = 0;
-                for (; in_channel + 7 < filter_input_depth; in_channel += 8) {
-                  CFU_MAC_SET_INPUT_VALS(packed_input_zero_point, packed_input_zero_point);
+                for (; in_channel + 3 < filter_input_depth; in_channel += 4) {
+                  CFU_MAC_SET_INPUT_VALS(packed_input_zero_point, 0);
                 }
                 for (; in_channel < filter_input_depth; ++in_channel) {
                   CFU_MAC_SET_INPUT_VALS(
@@ -103,11 +133,10 @@ inline void ConvPerChannel(
               const int8_t* input_ptr = input_data +
                                         Offset(input_shape, batch, in_y, in_x,
                                                0);
-              for (; in_channel + 7 < filter_input_depth;
-                   in_channel += 8, input_ptr += 8) {
-                uint32_t input_val_1 = *((const uint32_t*)(input_ptr));
-                uint32_t input_val_2 = *((const uint32_t*)(input_ptr + 4));
-                CFU_MAC_SET_INPUT_VALS(input_val_1, input_val_2);
+              for (; in_channel + 3 < filter_input_depth;
+                   in_channel += 4, input_ptr += 4) {
+                uint32_t input_val = *((const uint32_t*)(input_ptr));
+                CFU_MAC_SET_INPUT_VALS(input_val, 0);
               }
 
               // Tail loop for channel counts not divisible by 4 (e.g. first RGB layer).
@@ -119,32 +148,28 @@ inline void ConvPerChannel(
             }
           }
 
+        // Start each output pixel with the first filter set.
+        CFU_MAC_REWIND_FILTER_SET();
+
         for (int out_channel = 0; out_channel < output_depth; ++out_channel) {
+          
+          // Calculate MAC with buffer values
           CFU_MAC_CLEAR();
           for (int filter_y = 0; filter_y < filter_height; ++filter_y) {
             for (int filter_x = 0; filter_x < filter_width; ++filter_x) {
-              int in_channel = 0;
-              const int8_t* filter_ptr =
-                  filter_data +
-                  Offset(filter_shape, out_channel, filter_y, filter_x, 0);
-              for (; in_channel + 7 < filter_input_depth;
-                   in_channel += 8, filter_ptr += 8) {
-                uint32_t filter_val_1 = *((const uint32_t*)(filter_ptr));
-                uint32_t filter_val_2 = *((const uint32_t*)(filter_ptr + 4));
 
-                CFU_MAC_ON_BUFFER(filter_val_1, filter_val_2);
+              int in_channel = 0;
+              for (; in_channel + 3 < filter_input_depth; in_channel += 4) {                
+                CFU_MAC_ON_BUFFER(0, 0);
               }
 
               // Tail loop for channel counts not divisible by 4 (e.g. first RGB layer).
-              for (; in_channel < filter_input_depth;
-                   ++in_channel, ++filter_ptr) {
-                uint32_t filter_val = static_cast<uint8_t>(*filter_ptr);
-
-                CFU_MAC_ON_BUFFER(filter_val, 0);
+              for (; in_channel < filter_input_depth; ++in_channel) {               
+                CFU_MAC_ON_BUFFER(0, 0);
               }
             }
           }
-
+          
           int32_t acc = CFU_MAC_GET();
 
           if (bias_data) {
