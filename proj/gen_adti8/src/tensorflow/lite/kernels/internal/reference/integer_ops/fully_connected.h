@@ -128,6 +128,8 @@ inline void FullyConnected(
   TFLITE_DCHECK_GE(output_shape.DimensionsCount(), 1);
 
   CFU_MAC_SET_OFFSET(input_offset);
+  CFU_QNT_SET_OFFSET(output_offset);
+  CFU_QNT_SET_MIN_AND_MAX(output_activation_min, output_activation_max);
 
   TFLITE_DCHECK_LE(output_activation_min, output_activation_max);
   const int filter_dim_count = filter_shape.DimensionsCount();
@@ -156,16 +158,10 @@ inline void FullyConnected(
         CFU_MAC_ON_BUFFER(filter_val_1, filter_val_2);
       }
 
-      int32_t acc = CFU_MAC_GET();
-
-      if (bias_data) {
-        acc += bias_data[out_c];
-      }
-      acc = MultiplyByQuantizedMultiplier(acc, output_multiplier, output_shift);
-      acc += output_offset;
-      acc = std::max(acc, output_activation_min);
-      acc = std::min(acc, output_activation_max);
-      output_data[out_c + output_depth * b] = static_cast<int8_t>(acc);
+      bias_data ? CFU_QNT_SET_BIAS(bias_data[out_c]) : CFU_QNT_SET_BIAS((int32_t) 0);
+      CFU_QNT_SET_MUL_AND_SHIFT(output_multiplier, output_shift);
+      output_data[out_c + output_depth * b] = 
+              static_cast<int8_t>(CFU_QNT_GET());
     }
   }
 }
