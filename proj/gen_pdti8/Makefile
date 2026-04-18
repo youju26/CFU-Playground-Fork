@@ -40,7 +40,7 @@ DEFINES += DONUT_DEMO
 #DEFINES += SHOW_CONV_PERF #Adds a few cycles of overhead
 
 # Show CSR Counters
-export EXTRA_LITEX_ARGS="--cpu-variant=perf+cfu"
+export EXTRA_LITEX_ARGS="--cpu-variant=perf+cfu" "--sys-clk-freq=50e6"
 
 # Ignore Timing Warnings
 #export IGNORE_TIMING=1
