@@ -1,11 +1,10 @@
-module cfu_input_buffer #(
+module cfu_filter_buffer #(
     parameter integer DEPTH  = 128,
     parameter integer ADDR_W = 7
 ) (
     input  wire        clk,
     input  wire        rst,
     input  wire        clear,
-    input  signed [8:0]  offset,
 
     // write side
     input  wire        write_en,
@@ -15,10 +14,6 @@ module cfu_input_buffer #(
     // read side: prefetch design (data always valid when not empty)
     input  wire        read_en,
     output reg  [31:0] read_data,
-    output reg  [8:0]  input_0_and_offset,
-    output reg  [8:0]  input_1_and_offset,
-    output reg  [8:0]  input_2_and_offset,
-    output reg  [8:0]  input_3_and_offset,
     output wire        read_data_valid,
     output wire        read_empty,
 
@@ -54,10 +49,6 @@ module cfu_input_buffer #(
             wr_ptr <= {ADDR_W{1'b0}};
             cnt    <= {(ADDR_W+1){1'b0}};
             read_data <= 32'b0;
-            input_0_and_offset <= 9'b0;
-            input_1_and_offset <= 9'b0;
-            input_2_and_offset <= 9'b0;
-            input_3_and_offset <= 9'b0;
         end else begin
             // WRITE
             if (do_write) begin
@@ -72,10 +63,6 @@ module cfu_input_buffer #(
 
             // Always update read_data from current rd_ptr (prefetch)
             read_data <= mem[rd_ptr];
-            input_0_and_offset <= $signed(mem[rd_ptr][7:0]) + offset;
-            input_1_and_offset <= $signed(mem[rd_ptr][15:8]) + offset;
-            input_2_and_offset <= $signed(mem[rd_ptr][23:16]) + offset;
-            input_3_and_offset <= $signed(mem[rd_ptr][31:24]) + offset;
 
             // COUNT update (single point)
             case ({do_write, do_read})
