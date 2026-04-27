@@ -11,6 +11,10 @@
 `define MAC_SET_INPUT_VALS      7'd4 // Load input_vals into CFU FiFo buffer
 `define MAC_ON_BUFFER           7'd5 // Apply filter_vals on the input_vals, which are saved in the CFU input_val FiFo
 `define MAC_CLEAR_INPUT_VALS    7'd6 // Clear the input_val FiFo
+`define MAC_SET_FILTER_VALS     7'd7
+`define MAC_NEXT_FILTER_SET     7'd8
+`define MAC_CLEAR_FILTER_VALS   7'd9
+`define MAC_REWIND_FILTER_SET   7'd10
 
 // <--- QNT --->
 
