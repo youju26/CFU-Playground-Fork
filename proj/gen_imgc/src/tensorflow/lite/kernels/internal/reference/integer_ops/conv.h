@@ -80,11 +80,8 @@ inline void ConvPerChannel(
       for (int filter_x = 0; filter_x < filter_width; ++filter_x) {
 
         int in_channel = 0;
-        for (; in_channel + 7 < filter_input_depth; in_channel += 8) {
-          const int8_t* filter_ptr =
-              filter_data +
-              Offset(filter_shape, out_channel, filter_y, filter_x,
-                     in_channel);
+        const int8_t* filter_ptr = filter_data + Offset(filter_shape, out_channel, filter_y, filter_x, in_channel);
+        for (; in_channel + 7 < filter_input_depth; in_channel += 8, filter_ptr += 8) {
           uint32_t filter_val_0 = *((const uint32_t*)(filter_ptr));
           uint32_t filter_val_1 = *((const uint32_t*)(filter_ptr + 4));
 
@@ -92,7 +89,7 @@ inline void ConvPerChannel(
         }
 
         // Tail loop for channel counts not divisible by 8 (e.g. first RGB layer).
-        for (; in_channel < filter_input_depth; ++in_channel) {
+        for (; in_channel < filter_input_depth; ++in_channel, ++filter_ptr) {
           uint32_t filter_val = (uint8_t)filter_data[Offset(
               filter_shape, out_channel, filter_y, filter_x,
               in_channel)];
