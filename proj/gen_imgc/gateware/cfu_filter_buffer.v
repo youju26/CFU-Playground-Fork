@@ -1,6 +1,6 @@
 module cfu_filter_buffer #(
-    parameter integer DEPTH  = 256,
-    parameter integer ADDR_W = 8
+    parameter integer DEPTH  = 16384,
+    parameter integer ADDR_W = 14
 ) (
     input  wire        clk,
     input  wire        rst,
